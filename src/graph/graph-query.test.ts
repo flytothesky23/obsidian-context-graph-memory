@@ -14,6 +14,9 @@ describe("buildGraphQuery", () => {
     const query = buildGraphQuery(scope);
 
     expect(query.cypher).toContain("[*1..2]");
+    expect(query.cypher).toContain("WITH start, collect(DISTINCT graphPath) AS graphPaths, collect(DISTINCT neighbor) AS neighbors");
+    expect(query.cypher).toContain("WITH graphPaths, [node IN ([start] + neighbors) WHERE node IS NOT NULL] AS candidateNodes");
+    expect(query.cypher).not.toContain("[start] + collect(DISTINCT neighbor)");
     expect(query.parameters).toEqual({ path: "Projects/A.md", maxNodes: 42 });
   });
 
@@ -29,6 +32,7 @@ describe("buildGraphQuery", () => {
 
     expect(query.cypher).toContain("folderNote.folder STARTS WITH $folderPrefix");
     expect(query.cypher).toContain("ORDER BY folderNote.path");
+    expect(query.cypher).toContain("WITH folderNodes, folderNodes[0..$maxNodes] AS seedNodes");
     expect(query.cypher).toContain("truncationReason");
     expect(query.cypher).toContain("folderNodeIds");
     expect(query.cypher).toContain("externalBridgeNodeIds");

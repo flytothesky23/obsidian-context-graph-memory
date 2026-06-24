@@ -116,7 +116,8 @@ MATCH (start:Note {path: $path})
 WHERE coalesce(start.archived, false) = false
 OPTIONAL MATCH graphPath = (start)-[*1..${depth}]-(neighbor)
 WHERE all(node IN nodes(graphPath) WHERE NOT ("Note" IN labels(node)) OR coalesce(node.archived, false) = false)
-WITH collect(DISTINCT graphPath) AS graphPaths, [node IN ([start] + collect(DISTINCT neighbor)) WHERE node IS NOT NULL] AS candidateNodes
+WITH start, collect(DISTINCT graphPath) AS graphPaths, collect(DISTINCT neighbor) AS neighbors
+WITH graphPaths, [node IN ([start] + neighbors) WHERE node IS NOT NULL] AS candidateNodes
 WITH graphPaths, candidateNodes[0..$maxNodes] AS limitedNodes, size(candidateNodes) > $maxNodes AS truncated
 CALL {
   WITH graphPaths, limitedNodes
@@ -160,7 +161,7 @@ WHERE coalesce(folderNote.archived, false) = false
 WITH DISTINCT folderNote
 ORDER BY folderNote.path
 WITH collect(folderNote) AS folderNodes
-WITH folderNodes[0..$maxNodes] AS seedNodes, size(folderNodes) > $maxNodes AS folderTruncated
+WITH folderNodes, folderNodes[0..$maxNodes] AS seedNodes, size(folderNodes) > $maxNodes AS folderTruncated
 OPTIONAL MATCH (source)-[rel]-(target)
 WHERE source IN seedNodes
   AND (target IN seedNodes OR $includeExternalBridges = true)

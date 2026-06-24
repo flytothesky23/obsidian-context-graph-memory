@@ -1,7 +1,7 @@
 {
   "id": "context-graph-memory",
   "name": "Context Graph Memory",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "minAppVersion": "1.5.0",
   "description": "Index Markdown notes into Neo4j and render context graphs in Obsidian.",
   "author": "flytothesky",
