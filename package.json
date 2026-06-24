@@ -1,0 +1,36 @@
+{
+  "name": "obsidian-context-graph-memory",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Obsidian plugin for indexing Markdown notes into Neo4j and rendering context graphs.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "build": "npm run typecheck && node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs",
+    "release:check": "npm run build && node scripts/check-release.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "neo4j",
+    "knowledge-graph",
+    "cytoscape"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "obsidian": "^1.8.7",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "cytoscape": "^3.34.0",
+    "neo4j-driver": "^6.1.0"
+  }
+}
