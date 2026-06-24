@@ -163,6 +163,7 @@ Use this file to orient future Codex implementation threads.
 - Temporary T15 sample data was deleted after the live DB smoke.
 - The one-off Neo4j process was stopped and temporary local config changes were restored.
 - Release-grade verification now requires a GitHub release installed through BRAT; direct local copy is not sufficient for cross-device release confidence.
+- Release prep baseline was committed locally as `d8992f4`; GitHub remote, pushed tag, GitHub release, and BRAT installation remain pending.
 - UI command execution was not counted as verified because macOS command-palette automation was unreliable.
 
 ## Release Prep Notes
