@@ -23,7 +23,8 @@ No product defect was confirmed during T15.
 |---|---|---|
 | Unit tests | PASS | `npm test` passed 19 files / 68 tests after T15 documentation updates. |
 | Build | PASS | `npm run build` passed after target-vault install and T15 documentation updates. |
-| Release preflight | PASS | `npm run release:check` passed after release-prep commits. |
+| Release preflight | PASS | `RELEASE_TAG=0.0.1 npm run release:check` passed and printed release asset sizes plus SHA-256 hashes. |
+| Release tag mismatch guard | PASS | `RELEASE_TAG=wrong node scripts/check-release.mjs` failed with `release tag (wrong) must match manifest.json version (0.0.1)`. |
 | README/docs links | PASS | Local Markdown link check passed for 13 files. |
 | Git local commits | PASS | Latest commits are `d8992f4` and `a1d85c5`; working tree was clean before this report update. |
 | GitHub remote | NOT RUN | `git remote -v` returned no configured remote. |
@@ -45,6 +46,14 @@ No product defect was confirmed during T15.
 | Neo4j cleanup | PASS | One-off Neo4j console process was stopped and temporary local auth/usage-report config changes were restored. |
 | Current Neo4j process state | STOPPED | Follow-up `lsof` check found no listeners on `localhost:7474` or `localhost:7687`. |
 | Docker | NOT USED | `docker` command is still unavailable; Homebrew Neo4j was used instead. |
+
+Release asset hashes from the latest preflight:
+
+| Asset | Size | SHA-256 |
+|---|---:|---|
+| `manifest.json` | 262 bytes | `7602b60012af24c03d8e63b5d35bea5e2f673e6231b698822d246413173bc210` |
+| `main.js` | 2,563,551 bytes | `8e439c17d21946a367763edd65f848e92a523b5c48d65e74f9c1a65026305d01` |
+| `versions.json` | 23 bytes | `fd7f1f17cfce9ebec3345c8e583dd748c19ed4109c47095a4b19e01026ab47cb` |
 
 ## T15 Checklist
 

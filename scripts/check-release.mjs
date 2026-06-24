@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { access, readFile, stat } from "node:fs/promises";
 import process from "node:process";
 
@@ -9,12 +10,15 @@ const manifest = JSON.parse(await readFile("manifest.json", "utf8"));
 const versions = JSON.parse(await readFile("versions.json", "utf8"));
 
 const failures = [];
+const releaseAssets = [];
 
 for (const file of requiredFiles) {
   try {
     const fileStat = await stat(file);
     if (!fileStat.isFile() || fileStat.size === 0) {
       failures.push(`${file} must exist and be non-empty.`);
+    } else {
+      releaseAssets.push({ file, size: fileStat.size });
     }
   } catch {
     failures.push(`${file} is missing.`);
@@ -24,9 +28,19 @@ for (const file of requiredFiles) {
 for (const file of optionalFiles) {
   try {
     await access(file);
+    const fileStat = await stat(file);
+    if (fileStat.isFile() && fileStat.size > 0) {
+      releaseAssets.push({ file, size: fileStat.size });
+    }
   } catch {
     // Obsidian and BRAT treat styles.css as optional.
   }
+}
+
+const releaseTag = process.env.RELEASE_TAG ?? process.env.GITHUB_REF_NAME;
+
+if (releaseTag && releaseTag !== manifest.version) {
+  failures.push(`release tag (${releaseTag}) must match manifest.json version (${manifest.version}).`);
 }
 
 if (packageJson.version !== manifest.version) {
@@ -57,3 +71,8 @@ if (failures.length > 0) {
 }
 
 console.log(`release check passed for ${manifest.id} ${manifest.version}`);
+for (const asset of releaseAssets) {
+  const bytes = await readFile(asset.file);
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  console.log(`${asset.file}\t${asset.size} bytes\tsha256:${hash}`);
+}

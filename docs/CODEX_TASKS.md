@@ -170,8 +170,8 @@ Use this file to orient future Codex implementation threads.
 
 - `versions.json` maps plugin `0.0.1` to Obsidian `1.5.0`.
 - `.github/workflows/release.yml` builds, tests, checks, and uploads `manifest.json`, `main.js`, `versions.json`, and optional `styles.css` for tags matching `manifest.json.version`.
-- `scripts/check-release.mjs` verifies release asset presence and version consistency.
-- `npm run release:check` runs the production build and release asset checks.
+- `scripts/check-release.mjs` verifies release asset presence, version consistency, optional `RELEASE_TAG`/`GITHUB_REF_NAME` tag match, and release asset SHA-256 hashes.
+- `npm run release:check` runs the production build and release asset checks. `RELEASE_TAG=0.0.1 npm run release:check` passed; `RELEASE_TAG=wrong node scripts/check-release.mjs` failed as expected.
 - `docs/BRAT_RELEASE_VERIFICATION.md` records the BRAT/GitHub release verification contract.
 - Candidate GitHub repo is `flytothesky23/obsidian-context-graph-memory`; owner/name/visibility must be confirmed before external repo creation, push, tag, release, and BRAT installation.
 

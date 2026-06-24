@@ -22,6 +22,7 @@ Run:
 ```bash
 npm test
 npm run release:check
+RELEASE_TAG=0.0.1 npm run release:check
 ```
 
 Expected result:
@@ -31,6 +32,8 @@ Expected result:
 - `package.json` version matches `manifest.json` version
 - `versions.json` includes the manifest version
 - release assets exist and are non-empty
+- release tag matches `manifest.json.version` when `RELEASE_TAG` or `GITHUB_REF_NAME` is set
+- release asset sizes and SHA-256 hashes are printed for `manifest.json`, `main.js`, `versions.json`, and optional `styles.css`
 
 ## GitHub Release Flow
 
