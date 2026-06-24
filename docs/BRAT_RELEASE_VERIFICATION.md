@@ -34,6 +34,11 @@ Expected result:
 
 ## GitHub Release Flow
 
+Pending external decision:
+
+- GitHub owner/name: candidate `flytothesky23/obsidian-context-graph-memory`
+- Visibility: choose `public` for the simplest BRAT install path, or `private` if the plugin must stay private and BRAT private repo access will also be verified
+
 1. Commit the repo.
 2. Push to GitHub.
 3. Create and push a tag exactly matching `manifest.json.version`, for example:
@@ -45,6 +50,22 @@ git push origin 0.0.1
 
 4. The GitHub Actions release workflow builds, tests, checks, and uploads release assets.
 5. Confirm the release contains `manifest.json`, `main.js`, and `versions.json`.
+
+Command template after owner/name/visibility are confirmed:
+
+```bash
+# public repository
+gh repo create flytothesky23/obsidian-context-graph-memory --public --source=. --remote=origin --push
+
+# or private repository
+gh repo create flytothesky23/obsidian-context-graph-memory --private --source=. --remote=origin --push
+
+git tag 0.0.1
+git push origin 0.0.1
+gh release view 0.0.1 --json tagName,assets,url
+```
+
+Do not paste GitHub tokens, Neo4j credentials, Codex login state, or runtime logs into release notes, issue reports, screenshots, Obsidian notes, or exported context files.
 
 ## BRAT Install Verification
 

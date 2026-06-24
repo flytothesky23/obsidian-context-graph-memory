@@ -173,6 +173,7 @@ Use this file to orient future Codex implementation threads.
 - `scripts/check-release.mjs` verifies release asset presence and version consistency.
 - `npm run release:check` runs the production build and release asset checks.
 - `docs/BRAT_RELEASE_VERIFICATION.md` records the BRAT/GitHub release verification contract.
+- Candidate GitHub repo is `flytothesky23/obsidian-context-graph-memory`; owner/name/visibility must be confirmed before external repo creation, push, tag, release, and BRAT installation.
 
 ## Next Task Prompt
 

@@ -9,6 +9,8 @@ Release readiness: HOLD.
 
 The built plugin was installed into the target Obsidian vault by direct local copy and enabled at the vault config level. This is valid as a local smoke check, but it is not enough for release-grade verification across devices. Release-grade verification must use a GitHub release installed through BRAT, as documented in [BRAT Release Verification](./BRAT_RELEASE_VERIFICATION.md).
 
+The repo now has local release-prep commits `d8992f4` and `a1d85c5`, but no GitHub remote, pushed tag, release, or BRAT installation exists yet. Candidate repository `flytothesky23/obsidian-context-graph-memory` was not found by `gh repo view`, so it appears available for creation after owner/name/visibility are confirmed.
+
 A local Homebrew Neo4j 2026.05.0 instance was started for direct live DB smoke testing. `neo4j-driver` connectivity, schema initialization statements, and sample Cypher checks for `Note`, `Tag`, `HAS_TAG`, `LINKS_TO`, and `RECORDED_IN` passed against that live DB.
 
 Actual Obsidian desktop command execution, settings UI, File Explorer context menus, Cytoscape side panel behavior, memory modal/inbox append, and Codex export still require direct human UI verification. UI command-palette automation was not reliable enough to count as a manual plugin-load verification and must not be used for the remaining gates.
@@ -21,7 +23,11 @@ No product defect was confirmed during T15.
 |---|---|---|
 | Unit tests | PASS | `npm test` passed 19 files / 68 tests after T15 documentation updates. |
 | Build | PASS | `npm run build` passed after target-vault install and T15 documentation updates. |
-| README/docs links | PASS | Local Markdown link check passed for 12 files. |
+| Release preflight | PASS | `npm run release:check` passed after release-prep commits. |
+| README/docs links | PASS | Local Markdown link check passed for 13 files. |
+| Git local commits | PASS | Latest commits are `d8992f4` and `a1d85c5`; working tree was clean before this report update. |
+| GitHub remote | NOT RUN | `git remote -v` returned no configured remote. |
+| GitHub candidate repo lookup | PASS | `gh repo view flytothesky23/obsidian-context-graph-memory` returned no existing repo. |
 | Obsidian app installed | PASS | `/Applications/Obsidian.app`, version 1.12.7. |
 | Target vault opened by Obsidian | PASS | Obsidian app state marks `/Users/flytothesky/Library/CloudStorage/GoogleDrive-kskileco@gmail.com/내 드라이브/Obsidian` as `open=true`. |
 | Direct local plugin files installed in target vault | PASS | `.obsidian/plugins/context-graph-memory/manifest.json` and `main.js` exist. This is local smoke evidence, not BRAT release evidence. |
@@ -37,6 +43,7 @@ No product defect was confirmed during T15.
 | Neo4j schema smoke | PASS | 8 plugin schema statements completed against live Neo4j. |
 | Neo4j sample Cypher smoke | PASS | Sample `Note`, `Tag`, `HAS_TAG`, `LINKS_TO`, and `RECORDED_IN` counts returned 1 each; temporary sample data was deleted after verification. |
 | Neo4j cleanup | PASS | One-off Neo4j console process was stopped and temporary local auth/usage-report config changes were restored. |
+| Current Neo4j process state | STOPPED | Follow-up `lsof` check found no listeners on `localhost:7474` or `localhost:7687`. |
 | Docker | NOT USED | `docker` command is still unavailable; Homebrew Neo4j was used instead. |
 
 ## T15 Checklist
@@ -96,7 +103,10 @@ The report does not retain screenshots or raw UI logs from that attempt.
 
 ## Next Actions
 
-1. Start or reuse a live Neo4j instance, then configure the plugin settings in Obsidian.
-2. Open the target vault in Obsidian and verify the plugin is enabled in `Settings > Community plugins`.
-3. Run the remaining T15 checklist manually from the Obsidian UI.
-4. Record actual failures as product defects only after reproducing them with live Neo4j and a loaded plugin.
+1. Confirm GitHub owner/name and repository visibility.
+2. Create the GitHub repository, push local commits, tag `0.0.1`, and let the release workflow publish `manifest.json`, `main.js`, and `versions.json`.
+3. Install from the GitHub release through BRAT.
+4. Start or reuse a live Neo4j instance, then configure the plugin settings in Obsidian without writing credentials to notes.
+5. Open the target vault in Obsidian and verify the plugin is enabled in `Settings > Community plugins`.
+6. Run the remaining T15 checklist manually from the Obsidian UI.
+7. Record actual failures as product defects only after reproducing them with live Neo4j and a loaded plugin.
