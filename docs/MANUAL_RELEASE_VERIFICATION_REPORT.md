@@ -117,3 +117,9 @@ Homebrew Neo4j 2026.05.0 was used as a one-off local process. Authentication was
 | Physical pointer right-click not performed | Low | Optional human spot-check in Obsidian File Explorer; runtime event and click path already passed. |
 | `0.0.1` remains public but graph query is defective | Accepted | Users should install `0.0.2`; do not delete historical release. |
 | Neo4j local auth-disabled verification | Accepted for local smoke | Production users should use normal Neo4j credentials stored only in Obsidian plugin data. |
+
+## Post-Verification Cleanup
+
+- Neo4j local auth override was restored to the commented default: `#dbms.security.auth_enabled=false`.
+- The one-off Neo4j console process was stopped; no listeners remained on `localhost:7474` or `localhost:7687`.
+- Active vault plugin data was reset to safe defaults after verification: empty Neo4j password, automatic indexing disabled, default Memory Inbox and Codex Context output paths, and semantic enrichment mode `off`.
