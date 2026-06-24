@@ -26,7 +26,7 @@ No product defect was confirmed during T15.
 | Release preflight | PASS | `RELEASE_TAG=0.0.1 npm run release:check` passed and printed release asset sizes plus SHA-256 hashes. |
 | Release tag mismatch guard | PASS | `RELEASE_TAG=wrong node scripts/check-release.mjs` failed with `release tag (wrong) must match manifest.json version (0.0.1)`. |
 | README/docs links | PASS | Local Markdown link check passed for 13 files. |
-| Git local commits | PASS | Latest commits are `d8992f4` and `a1d85c5`; working tree was clean before this report update. |
+| Git local commits | PASS | Latest local release-prep commits are `d8992f4`, `a1d85c5`, `ee0e22c`, and `e8c4d28`; no remote is configured yet. |
 | GitHub remote | NOT RUN | `git remote -v` returned no configured remote. |
 | GitHub candidate repo lookup | PASS | `gh repo view flytothesky23/obsidian-context-graph-memory` returned no existing repo. |
 | Obsidian app installed | PASS | `/Applications/Obsidian.app`, version 1.12.7. |
