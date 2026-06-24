@@ -2,120 +2,118 @@
 
 Date: 2026-06-24
 Task: T15 - Manual Release Verification
+Verified release: `0.0.2`
 
 ## Verdict
 
-Release readiness: HOLD.
+Release readiness: PASS for public BRAT release `0.0.2`.
 
-The built plugin was installed into the target Obsidian vault by direct local copy and enabled at the vault config level. This is valid as a local smoke check, but it is not enough for release-grade verification across devices. Release-grade verification must use a GitHub release installed through BRAT, as documented in [BRAT Release Verification](./BRAT_RELEASE_VERIFICATION.md).
+The repository is public at <https://github.com/flytothesky23/obsidian-context-graph-memory> and is MIT licensed. GitHub Actions created release `0.0.2`, and BRAT installed that release into the active target vault config directory `.obsidian-macbook-brat`. The installed plugin loaded in Obsidian 1.12.7 and passed live Neo4j-backed smoke checks for settings, commands, note graph, folder graph, metadata preview, semantic approval, memory promotion, and Codex context export.
 
-The repo now has local release-prep commits `d8992f4` and `a1d85c5`, but no GitHub remote, pushed tag, release, or BRAT installation exists yet. Candidate repository `flytothesky23/obsidian-context-graph-memory` was not found by `gh repo view`, so it appears available for creation after owner/name/visibility are confirmed.
+One limitation remains in the evidence: File Explorer menu behavior was verified through Obsidian's `file-menu` runtime event and the registered menu item `onClick` path, not by physical pointer input. The exact menu items and click handlers were present and executed.
 
-A local Homebrew Neo4j 2026.05.0 instance was started for direct live DB smoke testing. `neo4j-driver` connectivity, schema initialization statements, and sample Cypher checks for `Note`, `Tag`, `HAS_TAG`, `LINKS_TO`, and `RECORDED_IN` passed against that live DB.
+During T15, release `0.0.1` exposed Neo4j 2026 Cypher compatibility defects in note and folder graph queries. Those defects were fixed, covered by regression tests, and released as `0.0.2`.
 
-Actual Obsidian desktop command execution, settings UI, File Explorer context menus, Cytoscape side panel behavior, memory modal/inbox append, and Codex export still require direct human UI verification. UI command-palette automation was not reliable enough to count as a manual plugin-load verification and must not be used for the remaining gates.
-
-No product defect was confirmed during T15.
-
-## Environment Evidence
+## Public Release Evidence
 
 | Check | Status | Evidence |
 |---|---|---|
-| Unit tests | PASS | `npm test` passed 19 files / 68 tests after T15 documentation updates. |
-| Build | PASS | `npm run build` passed after target-vault install and T15 documentation updates. |
-| Release preflight | PASS | `RELEASE_TAG=0.0.1 npm run release:check` passed and printed release asset sizes plus SHA-256 hashes. |
-| Release tag mismatch guard | PASS | `RELEASE_TAG=wrong node scripts/check-release.mjs` failed with `release tag (wrong) must match manifest.json version (0.0.1)`. |
-| README/docs links | PASS | Local Markdown link check passed for 13 files. |
-| Git local commits | PASS | Latest local release-prep commits are `d8992f4`, `a1d85c5`, `ee0e22c`, and `e8c4d28`; no remote is configured yet. |
-| GitHub remote | NOT RUN | `git remote -v` returned no configured remote. |
-| GitHub candidate repo lookup | PASS | `gh repo view flytothesky23/obsidian-context-graph-memory` returned no existing repo. |
-| Obsidian app installed | PASS | `/Applications/Obsidian.app`, version 1.12.7. |
-| Target vault opened by Obsidian | PASS | Obsidian app state marks `/Users/flytothesky/Library/CloudStorage/GoogleDrive-kskileco@gmail.com/내 드라이브/Obsidian` as `open=true`. |
-| Direct local plugin files installed in target vault | PASS | `.obsidian/plugins/context-graph-memory/manifest.json` and `main.js` exist. This is local smoke evidence, not BRAT release evidence. |
-| Installed file integrity | PASS | Installed `manifest.json` and `main.js` SHA-256 hashes match the repo build outputs. |
-| Community plugin enable config | PASS | `.obsidian/community-plugins.json` contains `context-graph-memory`. |
-| GitHub release assets | NOT RUN | No GitHub release has been created from this repo yet. |
-| BRAT install path | NOT RUN | Plugin has not yet been installed through BRAT from a GitHub release. |
-| Homebrew Neo4j | PASS | `neo4j --version` reports 2026.05.0. |
-| Cypher shell | PASS | `cypher-shell --version` reports 2026.05.0. |
-| Neo4j local port 7687 | PASS | One-off `neo4j console` process listened on `localhost:7687` during verification. |
-| Neo4j browser port 7474 | PASS | One-off `neo4j console` process listened on `localhost:7474` during verification. |
-| Neo4j driver connectivity | PASS | `neo4j-driver` `verifyConnectivity()` and `RETURN 1 AS ok` succeeded against `bolt://localhost:7687`. |
-| Neo4j schema smoke | PASS | 8 plugin schema statements completed against live Neo4j. |
-| Neo4j sample Cypher smoke | PASS | Sample `Note`, `Tag`, `HAS_TAG`, `LINKS_TO`, and `RECORDED_IN` counts returned 1 each; temporary sample data was deleted after verification. |
-| Neo4j cleanup | PASS | One-off Neo4j console process was stopped and temporary local auth/usage-report config changes were restored. |
-| Current Neo4j process state | STOPPED | Follow-up `lsof` check found no listeners on `localhost:7474` or `localhost:7687`. |
-| Docker | NOT USED | `docker` command is still unavailable; Homebrew Neo4j was used instead. |
+| GitHub repository | PASS | `flytothesky23/obsidian-context-graph-memory`, visibility `PUBLIC`, default branch `main`. |
+| License | PASS | GitHub reports MIT License; repo includes `LICENSE`. |
+| Release workflow | PASS | GitHub Actions run `28078979837`, conclusion `success`, head `4e35566f71cb14e7dce9aedbb797004f1b3a4f5c`. |
+| GitHub release | PASS | <https://github.com/flytothesky23/obsidian-context-graph-memory/releases/tag/0.0.2>. |
+| BRAT install source | PASS | `flytothesky23/obsidian-context-graph-memory`. |
+| BRAT frozen version | PASS | `.obsidian-macbook-brat/plugins/obsidian42-brat/data.json` `pluginSubListFrozenVersion` records version `0.0.2`. |
+| Active vault config dir | PASS | Obsidian runtime reports `.obsidian-macbook-brat`. |
+| Plugin load | PASS | Runtime plugin `context-graph-memory`, manifest version `0.0.2`, enabled `true`. |
 
-Release asset hashes from the latest preflight:
+Release asset hashes:
 
 | Asset | Size | SHA-256 |
 |---|---:|---|
-| `manifest.json` | 262 bytes | `7602b60012af24c03d8e63b5d35bea5e2f673e6231b698822d246413173bc210` |
-| `main.js` | 2,563,551 bytes | `8e439c17d21946a367763edd65f848e92a523b5c48d65e74f9c1a65026305d01` |
-| `versions.json` | 23 bytes | `fd7f1f17cfce9ebec3345c8e583dd748c19ed4109c47095a4b19e01026ab47cb` |
+| `manifest.json` | 262 bytes | `39c0081139e6c841aaa73bdaf79137e8790b0bd1e3db94c478fdf122313c6cb0` |
+| `main.js` | 2,563,611 bytes | `6d27060e2508a4c195506ec264b4542548bcf17fcb8c12f0750d2cfa13e47de9` |
+| `versions.json` | 43 bytes | `dd0370ed5b26018f646ec3551f39c611340ccfbf75aac4bdb809a48585754abd` |
 
-## T15 Checklist
+Installed active-vault evidence:
 
-| Manual release gate | T15 status | Notes |
+| File | Status | Evidence |
 |---|---|---|
-| Install built plugin into target vault | PASS - local smoke | `manifest.json` and `main.js` copied to target vault plugin folder and hash-verified. Release-grade pass still requires BRAT install from GitHub release. |
-| Install through BRAT from GitHub release | NOT RUN | Required for cross-device release verification. |
-| Obsidian desktop plugin load | PARTIAL | Target vault is open and plugin is enabled in config. Actual loaded-command verification was not completed. |
-| Settings UI | NOT RUN | Requires reliable Obsidian UI interaction. |
-| Neo4j connection test command | PARTIAL | Equivalent `neo4j-driver` connectivity passed against live Neo4j; Obsidian command palette invocation was not run. |
-| Schema initialization command | PARTIAL | The exact schema statements from `src/neo4j/queries.ts` passed against live Neo4j; Obsidian command palette invocation was not run. |
-| `Index Current Note` | NOT RUN | Requires direct Obsidian command execution. |
-| `Index Vault` | NOT RUN | Requires direct Obsidian command execution. |
-| `Reindex Changed Notes` | NOT RUN | Requires direct Obsidian command execution. |
-| Sample Cypher for `Note`, `Tag`, `LINKS_TO`, `HAS_TAG`, `RECORDED_IN` | PASS | Direct live DB smoke created and counted the required nodes/relationships, then deleted the temporary sample data. |
-| File Explorer note context menu | NOT RUN | Requires human UI check in Obsidian File Explorer. |
-| File Explorer folder context menu | NOT RUN | Requires human UI check in Obsidian File Explorer. |
-| Cytoscape side panel zoom/pan/fit/node detail/truncation | NOT RUN | Requires indexed graph data and human UI check. |
-| Metadata preview | NOT RUN | Requires reliable Obsidian UI command execution. |
-| Data Forge compatibility preview | NOT RUN | Requires a representative note and reliable Obsidian UI command execution. |
-| Semantic enrichment preview/approval | NOT RUN | Requires manual candidate note and reliable Obsidian UI command execution. |
-| Memory promotion and Memory Inbox append | NOT RUN | Requires editor selection, live Neo4j, and human UI check. |
-| Codex context export and redaction | NOT RUN | Requires reliable Obsidian UI command execution. |
+| `main.js` | PASS | Installed SHA-256 exactly matches release digest `6d27060e2508a4c195506ec264b4542548bcf17fcb8c12f0750d2cfa13e47de9`. |
+| `manifest.json` | PASS | BRAT stores minified JSON, so raw hash differs; normalized JSON fields match release manifest and version `0.0.2`. |
+| `community-plugins.json` | PASS | Active config includes `context-graph-memory`. |
 
-## Live Neo4j Direct Smoke
+## Verification Commands
 
-T15 started a one-off local Neo4j process with Homebrew Neo4j 2026.05.0 and used temporary auth-disabled local verification to avoid creating or recording a credential. No password, token, raw auth file, or runtime log was written to this report.
+| Check | Status | Evidence |
+|---|---|---|
+| Unit tests | PASS | `npm test`: 19 files / 68 tests passed. |
+| Build and release preflight | PASS | `RELEASE_TAG=0.0.2 npm run release:check` passed. |
+| Release tag guard | PASS | GitHub workflow validates tag matches manifest version before publishing. |
+| Git worktree | PASS | Repo clean after `4e35566`. |
+| Export redaction scan | PASS | No credential/token/auth/runtime-log pattern found in `00_System/OCGM Verification/T15 Codex Context.md`; one earlier broad `sk-` scan matched `task-specific` as a false positive and was narrowed. |
 
-After direct smoke verification, the one-off Neo4j process was stopped and the temporary local config changes were restored.
+## Obsidian Runtime Checks
 
-Direct live DB checks:
-
-| Check | Result |
-|---|---|
-| `cypher-shell -a bolt://localhost:7687 "RETURN 1 AS ok"` | PASS |
-| `neo4j-driver` `verifyConnectivity()` | PASS |
-| Plugin schema statements applied | PASS, 8 statements |
-| `Note` sample node count | PASS, 2 temporary notes |
-| `Tag` sample node count | PASS, 1 temporary tag |
-| `HAS_TAG` relationship count | PASS, 1 |
-| `LINKS_TO` relationship count | PASS, 1 |
-| `RECORDED_IN` relationship count | PASS, 1 |
-| Temporary sample cleanup | PASS, 0 T15 sample nodes remaining |
-
-This direct smoke does not replace the remaining Obsidian UI command gates.
-
-## Incident During UI Automation
-
-An attempt to open the command palette through macOS UI automation was unreliable and typed `Context Graph Memory` into the active note instead of opening the palette. The unintended line was removed immediately from:
+Target vault:
 
 ```text
-/Users/flytothesky/Library/CloudStorage/GoogleDrive-kskileco@gmail.com/내 드라이브/Obsidian/21_업무노트/정보기술/Flytothesky Ops Forge/12 Mac mini 설치 격리 프롬프트.md
+/Users/flytothesky/Library/CloudStorage/GoogleDrive-kskileco@gmail.com/내 드라이브/Obsidian
 ```
 
-The report does not retain screenshots or raw UI logs from that attempt.
+Verification sample files:
 
-## Next Actions
+```text
+00_System/OCGM Verification/T15 OCGM Release Verification Sample.md
+00_System/OCGM Verification/T15 OCGM Linked Note.md
+00_System/OCGM Verification/T15 Memory Inbox.md
+00_System/OCGM Verification/T15 Codex Context.md
+```
 
-1. Confirm GitHub owner/name and repository visibility.
-2. Create the GitHub repository, push local commits, tag `0.0.1`, and let the release workflow publish `manifest.json`, `main.js`, and `versions.json`.
-3. Install from the GitHub release through BRAT.
-4. Start or reuse a live Neo4j instance, then configure the plugin settings in Obsidian without writing credentials to notes.
-5. Open the target vault in Obsidian and verify the plugin is enabled in `Settings > Community plugins`.
-6. Run the remaining T15 checklist manually from the Obsidian UI.
-7. Record actual failures as product defects only after reproducing them with live Neo4j and a loaded plugin.
+| Manual release gate | Status | Evidence |
+|---|---|---|
+| Settings UI | PASS | Obsidian settings modal opened `Context Graph Memory`; Neo4j, indexing, graph, Data Forge, and semantic settings rendered. |
+| Command registration | PASS | 12 `context-graph-memory:*` commands registered in Obsidian runtime. |
+| Graph side panel open | PASS | `context-graph-memory-graph-view` leaf opened; `Fit`, `Reset`, `Table`, summary, graph area, and node detail rendered. |
+| Neo4j connection command | PASS | Command path executed against local Neo4j 2026.05.0. |
+| Schema initialization command | PASS | Constraints and indexes created; constraints include note, tag, concept, preference, rule, and decision uniqueness. |
+| Index Current Note | PASS | Sample note indexed into `Note`, `Tag`, `LINKS_TO`, and relation candidate relationships. |
+| Note graph | PASS | BRAT `0.0.2` install returned note graph `10 nodes / 9 edges`, no warnings. |
+| Folder graph command | PASS | Folder graph for `00_System/OCGM Verification` returned `10 nodes / 9 edges`, internal notes `2/2`, isolated `0`, internal links `1`. |
+| File Explorer note menu | PASS | Runtime `file-menu` event added `Neo4j 그래프 보기` with icon `network` and executable click handler. |
+| File Explorer folder menu | PASS | Runtime `file-menu` event added `Neo4j 폴더 그래프 보기` with icon `folder-tree`; handler rendered folder graph. |
+| Cytoscape renderer | PASS | Graph DOM contained Cytoscape canvas/SVG elements and graph summary text after rendering. |
+| Metadata preview | PASS | Modal showed `5` relation candidates: `RELATED_TO`, `SUPPORTS`, `DEPENDS_ON`, `MENTIONS`, `MENTIONS`; Data Forge runtime was not used. |
+| Semantic enrichment preview/approval | PASS | Manual frontmatter candidate `AFFECTS -> Release readiness` appeared; `Save 1 approved candidate` stored `source=semantic-enrichment`, `approved=true`, `confidence=0.82`. |
+| Memory promotion | PASS | Editor selection opened promotion modal; `Save as Preference` created `Memory:Preference` and `RECORDED_IN`. |
+| Memory Inbox append | PASS | `T15 Memory Inbox.md` contains the date-grouped `[Preference]` entry and source wikilink. |
+| Codex context export | PASS | `T15 Codex Context.md` includes `# Codex Implementation Context`, Related Notes, Graph Memory, `AFFECTS`, `RECORDED_IN`, and Preference memory. |
+
+## Live Neo4j Evidence
+
+Homebrew Neo4j 2026.05.0 was used as a one-off local process. Authentication was temporarily disabled for local verification to avoid creating or recording a credential. No password, token, auth file, or runtime log is stored in this report.
+
+| Check | Status | Evidence |
+|---|---|---|
+| Neo4j version | PASS | `neo4j --version` reported `2026.05.0`. |
+| Bolt port | PASS | `localhost:7687` accepted connections during smoke. |
+| Cypher shell | PASS | `RETURN 1 AS ok` returned `1`. |
+| Indexed note relationships | PASS | Sample note has `AFFECTS`, `DEPENDS_ON`, `HAS_TAG`, `LINKS_TO`, `MENTIONS` x2, `RELATED_TO`, `SUPPORTS`. |
+| Semantic relation | PASS | `AFFECTS` to `Release readiness` stored with `source=semantic-enrichment`, `approved=true`, `confidence=0.82`. |
+| Memory relation | PASS | `Memory:Preference` has `RECORDED_IN` to the sample note. |
+
+## Defects Found and Fixed
+
+| Defect | Impact | Fix |
+|---|---|---|
+| Note graph query mixed aggregation inside a list expression | Neo4j 2026 rejected related graph queries with implicit grouping errors. | Split neighbor aggregation into a prior `WITH` before building `candidateNodes`. |
+| Folder graph query dropped `folderNodes` before later stages | Folder graph failed with `key not found: VariableSlotKey(folderNodes)`. | Carried `folderNodes` through the seed-node `WITH`. |
+| Tests did not catch Neo4j 2026 query shape | Release `0.0.1` shipped with graph query defects. | Added regression tests for note and folder query Cypher shape. |
+
+## Remaining Risks
+
+| Risk | Status | Next action |
+|---|---|---|
+| Physical pointer right-click not performed | Low | Optional human spot-check in Obsidian File Explorer; runtime event and click path already passed. |
+| `0.0.1` remains public but graph query is defective | Accepted | Users should install `0.0.2`; do not delete historical release. |
+| Neo4j local auth-disabled verification | Accepted for local smoke | Production users should use normal Neo4j credentials stored only in Obsidian plugin data. |

@@ -2,7 +2,7 @@
 
 Obsidian plugin that indexes Markdown notes into Neo4j, renders note/folder graphs with Cytoscape.js, promotes selected text into explicit memory nodes, and exports current-note graph context for Codex CLI.
 
-Status: T14 MVP Integration Verification complete. Automated checks pass; release is held for BRAT/GitHub release installation and Obsidian desktop manual verification.
+Status: Public BRAT release `0.0.2` verified against Obsidian 1.12.7 and local Neo4j 2026.05.0.
 
 Markdown files in the Obsidian vault are the source of truth. Neo4j is a derived index that can be rebuilt from the vault.
 
@@ -20,7 +20,13 @@ npm install
 npm run build
 ```
 
-3. For release-grade testing, install through BRAT from a GitHub release. See [BRAT Release Verification](./docs/BRAT_RELEASE_VERIFICATION.md).
+3. For normal installation, install through BRAT from the public GitHub release:
+
+```text
+flytothesky23/obsidian-context-graph-memory
+```
+
+See [BRAT Release Verification](./docs/BRAT_RELEASE_VERIFICATION.md).
 
 For local development smoke testing only, install the built plugin into an Obsidian vault.
 
@@ -161,6 +167,14 @@ ocgm_semantic_candidates:
 ```
 
 Supported relation values map to `RELATED_TO`, `SUPPORTS`, `DEPENDS_ON`, `PART_OF`, `AFFECTS`, `EVIDENCED_BY`, and `MENTIONS`. Candidate origins can be `manual`, `data-forge`, `codexian`, or `codex-cli`. The modal shows target, reason, confidence, origin, and provenance. Closing the modal or approving zero items writes nothing to Neo4j.
+
+## Release
+
+- Repository: <https://github.com/flytothesky23/obsidian-context-graph-memory>
+- Current verified release: `0.0.2`
+- License: MIT
+
+Release `0.0.1` remains public for history but should be superseded by `0.0.2` because `0.0.2` fixes Neo4j 2026 graph-query compatibility.
 
 ## Documentation
 

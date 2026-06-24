@@ -3,6 +3,8 @@
 Date: 2026-06-24
 Task: T14 - MVP Integration Verification
 
+Superseded for release decision by [Manual Release Verification Report](./MANUAL_RELEASE_VERIFICATION_REPORT.md), which verifies public BRAT release `0.0.2`.
+
 ## Verdict
 
 Code readiness: PASS.
@@ -64,4 +66,3 @@ This report does not add new plugin features.
 Proposed T15: Manual Release Verification.
 
 Goal: install the built plugin into an Obsidian desktop vault, connect to a running Neo4j instance, run each failed manual gate above, and record pass/fail with screenshots or concise notes. Do not add features during this task; file implementation fixes separately only if a gate fails because of a product defect.
-

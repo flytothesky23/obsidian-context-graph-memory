@@ -40,7 +40,7 @@ Use this file to orient future Codex implementation threads.
 | T12 | Data Forge Compatibility | Import and preview Data Forge relation frontmatter | Complete |
 | T13 | Optional Semantic Enrichment Adapter | Design manual semantic enrichment preview/approval | Complete |
 | T14 | MVP Integration Verification | Verify MVP acceptance criteria end to end | Complete |
-| T15 | Manual Release Verification | Run Obsidian desktop and live Neo4j release gates from T14 | Partial - BRAT/UI gates pending |
+| T15 | Manual Release Verification | Run Obsidian desktop and live Neo4j release gates from T14 | Complete - public BRAT release `0.0.2` verified |
 
 ## Completed T03 Notes
 
@@ -151,67 +151,63 @@ Use this file to orient future Codex implementation threads.
 - Source search found no automatic LLM, Codex CLI, Data Forge runtime, or automatic semantic enrichment execution path.
 - Manual Obsidian desktop and live Neo4j checks were not run in T14 and are intentionally separated into proposed T15.
 
-## T15 Partial Verification Notes
+## Completed T15 Notes
 
-- `docs/MANUAL_RELEASE_VERIFICATION_REPORT.md` records T15 pass/blocked/not-run status.
-- The built plugin was installed into the target vault at `.obsidian/plugins/context-graph-memory` as local smoke evidence.
-- Installed `manifest.json` and `main.js` SHA-256 hashes match the repo build outputs.
-- `.obsidian/community-plugins.json` was added to enable `context-graph-memory` for the target vault.
-- Obsidian app version 1.12.7 is installed and the target vault is marked open in Obsidian app state.
-- Homebrew Neo4j 2026.05.0 and `cypher-shell` 2026.05.0 are available.
-- A one-off local Neo4j console process passed direct live DB smoke: driver connectivity, 8 schema statements, and sample `Note`, `Tag`, `HAS_TAG`, `LINKS_TO`, `RECORDED_IN` Cypher checks.
-- Temporary T15 sample data was deleted after the live DB smoke.
-- The one-off Neo4j process was stopped and temporary local config changes were restored.
-- Release-grade verification now requires a GitHub release installed through BRAT; direct local copy is not sufficient for cross-device release confidence.
-- Release prep baseline was committed locally as `d8992f4`; GitHub remote, pushed tag, GitHub release, and BRAT installation remain pending.
-- UI command execution was not counted as verified because macOS command-palette automation was unreliable.
+- `docs/MANUAL_RELEASE_VERIFICATION_REPORT.md` records the final T15 public release verification.
+- The GitHub repository is public at `flytothesky23/obsidian-context-graph-memory` and is MIT licensed.
+- GitHub release `0.0.2` was built by Actions run `28078979837`.
+- BRAT installed `flytothesky23/obsidian-context-graph-memory` into the active target vault config directory `.obsidian-macbook-brat`.
+- BRAT `pluginSubListFrozenVersion` records `0.0.2` for this plugin.
+- Obsidian 1.12.7 loaded and enabled `context-graph-memory` version `0.0.2`.
+- Installed `main.js` SHA-256 matches the release digest `6d27060e2508a4c195506ec264b4542548bcf17fcb8c12f0750d2cfa13e47de9`.
+- Settings UI opened and rendered Neo4j, indexing, graph, Data Forge, and semantic settings.
+- Obsidian runtime command paths verified connection/schema/index current note/note graph/folder graph/export.
+- File Explorer menu registration and menu item click handlers were verified through Obsidian's `file-menu` runtime event.
+- Cytoscape side panel rendered note and folder graphs against live Neo4j 2026.05.0.
+- Metadata preview showed relation candidates without Data Forge runtime calls.
+- Manual semantic enrichment preview/approval stored an approved `AFFECTS` relation.
+- Memory promotion from editor selection stored `Memory:Preference`, created `RECORDED_IN`, and appended Memory Inbox.
+- Codex context export wrote the required Markdown contract and passed a secret-pattern scan.
+- T15 found Neo4j 2026 Cypher compatibility defects in release `0.0.1`; they were fixed and released in `0.0.2`.
 
-## Release Prep Notes
+## Release Notes
 
-- `versions.json` maps plugin `0.0.1` to Obsidian `1.5.0`.
+- `versions.json` maps plugin `0.0.1` and `0.0.2` to Obsidian `1.5.0`.
 - `.github/workflows/release.yml` builds, tests, checks, and uploads `manifest.json`, `main.js`, `versions.json`, and optional `styles.css` for tags matching `manifest.json.version`.
 - `scripts/check-release.mjs` verifies release asset presence, version consistency, optional `RELEASE_TAG`/`GITHUB_REF_NAME` tag match, and release asset SHA-256 hashes.
-- `npm run release:check` runs the production build and release asset checks. `RELEASE_TAG=0.0.1 npm run release:check` passed; `RELEASE_TAG=wrong node scripts/check-release.mjs` failed as expected.
+- `RELEASE_TAG=0.0.2 npm run release:check` passed.
 - `docs/BRAT_RELEASE_VERIFICATION.md` records the BRAT/GitHub release verification contract.
-- Candidate GitHub repo is `flytothesky23/obsidian-context-graph-memory`; owner/name/visibility must be confirmed before external repo creation, push, tag, release, and BRAT installation.
+- Release `0.0.1` remains public for history but should be superseded by `0.0.2` because `0.0.1` has Neo4j 2026 graph-query defects.
 
 ## Next Task Prompt
 
-Continue T15 with GitHub release, BRAT installation, and direct human UI verification in Obsidian. Do not use macOS keyboard automation for command-palette execution.
+Use this prompt for post-release operational setup. T15 release verification is complete.
 
 ```text
-Task T15 Manual Release Verification을 계속 진행해주세요.
+Obsidian Context Graph Memory 플러그인의 post-release 운영 설정을 진행해주세요.
 
 목표:
-- T15에서 아직 BLOCKED/NOT RUN인 manual release gate를 실제 Obsidian desktop과 실행 중인 Neo4j에서 확인합니다.
-- 새 기능을 추가하지 않고 pass/fail 증거만 기록합니다.
-- direct local copy는 smoke evidence일 뿐입니다. release-grade install evidence는 GitHub release를 BRAT로 설치한 결과여야 합니다.
-- Homebrew Neo4j 2026.05.0 direct DB smoke는 이미 통과했습니다. 그래도 실제 플러그인 command는 Obsidian UI에서 다시 확인해야 합니다.
+- public GitHub/BRAT release `0.0.2`는 이미 검증됐습니다.
+- 새 기능을 추가하지 말고 운영 범위와 안전한 indexing 기준을 정합니다.
+- full-vault indexing 전에 includeFolders, excludeFolders, includeTags 정책을 먼저 정합니다.
+- Neo4j credential은 Obsidian plugin data에만 저장하고 노트/export/docs에는 쓰지 않습니다.
 
 기준 문서:
 - docs/MANUAL_RELEASE_VERIFICATION_REPORT.md
-- docs/RELEASE_READINESS_REPORT.md
 - docs/REMAINING_RISKS.md
 - docs/USAGE.md
 - docs/TROUBLESHOOTING.md
 - docs/BRAT_RELEASE_VERIFICATION.md
 
-검증:
-- GitHub release asset 생성 후 BRAT로 target vault에 설치
-- plugin load와 settings UI 확인
-- Neo4j connection test와 schema initialization을 Obsidian command로 실행
-- Index Current Note, Index Vault, Reindex Changed Notes 실행
-- sample Cypher로 `Note`, `Tag`, `LINKS_TO`, `HAS_TAG`, `RECORDED_IN` 확인
-- note 우클릭 `Neo4j 그래프 보기` 확인
-- folder 우클릭 `Neo4j 폴더 그래프 보기` 확인
-- Cytoscape side panel zoom/pan/fit/node detail/truncated summary 확인
-- Metadata preview, Data Forge compatibility preview, semantic enrichment preview/approval 확인
-- Memory promotion과 Memory Inbox append 확인
-- Codex context export 파일 생성과 secret redaction 확인
+작업:
+- 운영 Neo4j endpoint와 credential 저장 위치 확인
+- include/exclude folder 초안 작성
+- 작은 폴더 단위 indexing smoke 후 full-vault indexing 여부 판단
+- 다른 기기에서 BRAT update/install 동작 확인이 필요한지 결정
 
 보고:
-- pass/fail 표
-- 실패 항목별 재현 단계
-- 새 구현 Task가 필요한 결함 목록
-- release 가능 여부
+- 운영 설정값
+- indexing 범위
+- 실행한 command와 결과
+- 남은 운영 리스크
 ```
