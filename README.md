@@ -96,6 +96,8 @@ File Explorer shortcuts:
 
 - Right-click a Markdown note and choose `Neo4j 그래프 보기`.
 - Right-click a folder and choose `Neo4j 폴더 그래프 보기`.
+- Right-click a Markdown note and choose `Obsidian Raw local graph 열기` to open Obsidian's note-local graph.
+- Right-click a folder and choose `Obsidian Raw local graph 열기` to open Obsidian's graph view with a `path:"folder/"` filter applied.
 
 ## Commands
 
@@ -106,6 +108,7 @@ File Explorer shortcuts:
 | `Context Graph Memory: Index Current Note` | Extracts metadata from the active Markdown note and upserts it to Neo4j. |
 | `Context Graph Memory: Index Vault` | Indexes Markdown notes in the vault subject to include/exclude settings. |
 | `Context Graph Memory: Reindex Changed Notes` | Flushes queued create/modify/rename/delete indexing work. |
+| `Context Graph Memory: Obsidian Raw local graph 열기` | Opens Obsidian's raw local graph for the active note. |
 | `Context Graph Memory: Show Metadata Extraction Preview` | Shows current-note metadata, Data Forge compatible fields, and relation candidates without writing to Neo4j. |
 | `Context Graph Memory: Preview Semantic Enrichment Candidates` | Shows manual semantic relation candidates and saves only approved candidates to Neo4j. |
 | `Context Graph Memory: Show Related Graph` | Opens the graph panel for the active note. |

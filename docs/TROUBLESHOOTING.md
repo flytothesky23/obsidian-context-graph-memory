@@ -84,6 +84,8 @@ If the panel says the graph was truncated at the folder-note limit, increase `ma
 
 The note menu appears only for Markdown files. The folder menu appears only for folders. Right-click the file or folder in Obsidian File Explorer, not inside the editor body.
 
+`Obsidian Raw local graph 열기` on a folder opens Obsidian's graph view with a `path:"folder/"` search filter because Obsidian's built-in local graph is note-centric. If the graph opens without a filter, paste the Notice-provided `path:"folder/"` value into the graph search box and confirm the Graph core plugin is enabled.
+
 ## Memory Promotion Does Not Save
 
 Check:

@@ -18,6 +18,13 @@ import {
 } from "./memory/memory-promotion";
 import { Neo4jClient, sanitizeNeo4jError } from "./neo4j/client";
 import { Neo4jSchemaService } from "./neo4j/schema";
+import {
+  buildFolderGraphSearch,
+  buildFolderGraphViewState,
+  getExistingGraphLeaf,
+  OBSIDIAN_GLOBAL_GRAPH_COMMAND_IDS,
+  OBSIDIAN_LOCAL_GRAPH_COMMAND_IDS,
+} from "./obsidian-graph";
 import { SemanticEnrichmentApprovalModal } from "./semantic/semantic-enrichment-modal";
 import {
   SemanticEnrichmentService,
@@ -32,7 +39,7 @@ const UI_PREFIX = "컨텍스트 그래프 메모리";
 
 const COMMAND_NAMES = {
   openGraphPanel: `${UI_PREFIX}: 그래프 패널 열기`,
-  openObsidianLocalGraph: `${UI_PREFIX}: Obsidian 기본 로컬 그래프 열기`,
+  openObsidianLocalGraph: `${UI_PREFIX}: Obsidian Raw local graph 열기`,
   testNeo4jConnection: `${UI_PREFIX}: Neo4j 연결 테스트`,
   initializeNeo4jSchema: `${UI_PREFIX}: Neo4j 스키마 초기화`,
   indexCurrentNote: `${UI_PREFIX}: 현재 노트 인덱싱`,
@@ -96,7 +103,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
       id: "open-obsidian-local-graph",
       name: COMMAND_NAMES.openObsidianLocalGraph,
       callback: async () => {
-        this.openObsidianLocalGraph("Obsidian 기본 로컬 그래프를 열었습니다.");
+        this.openObsidianLocalGraph("Obsidian Raw local graph를 열었습니다.");
       },
     });
 
@@ -425,10 +432,10 @@ export default class ContextGraphMemoryPlugin extends Plugin {
           });
           menu.addItem((item) => {
             item
-              .setTitle("Obsidian 기본 로컬 그래프 열기")
+              .setTitle("Obsidian Raw local graph 열기")
               .setIcon("git-fork")
               .onClick(() => {
-                this.openObsidianLocalGraph("Obsidian 기본 로컬 그래프를 열었습니다.");
+                this.openObsidianLocalGraph("Obsidian Raw local graph를 열었습니다.");
               });
           });
           return;
@@ -445,13 +452,10 @@ export default class ContextGraphMemoryPlugin extends Plugin {
           });
           menu.addItem((item) => {
             item
-              .setTitle("Obsidian 기본 그래프 열기")
+              .setTitle("Obsidian Raw local graph 열기")
               .setIcon("git-fork")
               .onClick(() => {
-                this.openObsidianLocalGraph(
-                  "Obsidian 기본 그래프를 열었습니다. 폴더 범위는 Obsidian 그래프의 검색/필터에서 조정하세요.",
-                  ["graph:open", "graph:open-local", "graph:open-local-graph"],
-                );
+                void this.openObsidianFolderRawGraph(file.path);
               });
           });
         }
@@ -656,7 +660,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
   private openObsidianLocalGraph(
     successMessage: string,
-    preferredCommandIds = ["graph:open-local", "graph:open-local-graph", "graph:open"],
+    preferredCommandIds: readonly string[] = OBSIDIAN_LOCAL_GRAPH_COMMAND_IDS,
   ): boolean {
     const commands = (this.app as AppWithCommands).commands;
     const commandId = preferredCommandIds.find((id) =>
@@ -671,6 +675,36 @@ export default class ContextGraphMemoryPlugin extends Plugin {
     commands?.executeCommandById?.(commandId);
     new Notice(successMessage);
     return true;
+  }
+
+  private async openObsidianFolderRawGraph(folderPath: string): Promise<boolean> {
+    const search = buildFolderGraphSearch(folderPath);
+
+    try {
+      const leaf =
+        getExistingGraphLeaf(this.app.workspace.getLeavesOfType("graph")) ??
+        this.app.workspace.getRightLeaf(false) ??
+        this.app.workspace.getLeaf(true);
+
+      await leaf.setViewState(buildFolderGraphViewState(folderPath, leaf.getViewState()));
+      await this.app.workspace.revealLeaf(leaf);
+      await leaf.loadIfDeferred();
+
+      const scopeText = search.length > 0 ? `${folderPath} (${search})` : "vault 전체";
+      new Notice(`Obsidian Raw local graph를 폴더 범위로 열었습니다: ${scopeText}`);
+      return true;
+    } catch (error) {
+      const opened = this.openObsidianLocalGraph(
+        "Obsidian 기본 그래프는 열었지만 폴더 필터를 자동 적용하지 못했습니다.",
+        OBSIDIAN_GLOBAL_GRAPH_COMMAND_IDS,
+      );
+
+      if (opened && search.length > 0) {
+        new Notice(`그래프 검색 필터에 직접 입력하세요: ${search}`);
+      }
+
+      return opened;
+    }
   }
 }
 

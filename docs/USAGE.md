@@ -93,6 +93,8 @@ The side panel shows:
 
 You can also right-click a Markdown note in File Explorer and choose `Neo4j 그래프 보기`. This uses the clicked file path, not the active editor path.
 
+The same note menu also provides `Obsidian Raw local graph 열기`. That opens Obsidian's built-in note-local graph for the clicked note.
+
 ## 6. View Folder Graphs
 
 Right-click a folder in File Explorer and choose:
@@ -100,6 +102,14 @@ Right-click a folder in File Explorer and choose:
 ```text
 Neo4j 폴더 그래프 보기
 ```
+
+The folder menu also provides:
+
+```text
+Obsidian Raw local graph 열기
+```
+
+Obsidian's built-in local graph is note-centric, so folder scope is implemented with Obsidian's graph view and an automatic `path:"folder/"` search filter. Use the Neo4j folder graph when you need indexed relation summaries and use the raw Obsidian graph when you want Obsidian's native link visualization for the folder path.
 
 The folder graph uses the folder path as the scope. Settings control whether nested notes and one-hop external bridge relationships are included.
 

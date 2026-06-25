@@ -82,10 +82,12 @@ Install through BRAT using the GitHub repository URL, then verify in Obsidian:
 5. `Index Current Note`, `Index Vault`, and `Reindex Changed Notes` run.
 6. File Explorer note right-click shows `Neo4j 그래프 보기`.
 7. File Explorer folder right-click shows `Neo4j 폴더 그래프 보기`.
-8. Graph side panel renders with Cytoscape and supports zoom, pan, fit, node detail, and truncation summary.
-9. Metadata preview, Data Forge compatibility preview, and semantic enrichment preview/approval work.
-10. Memory promotion appends Memory Inbox and creates `RECORDED_IN`.
-11. Codex context export writes the configured Markdown file and redacts secrets.
+8. File Explorer note right-click shows `Obsidian Raw local graph 열기`.
+9. File Explorer folder right-click shows `Obsidian Raw local graph 열기` and opens Obsidian graph view with a `path:"folder/"` search filter.
+10. Graph side panel renders with Cytoscape and supports zoom, pan, fit, node detail, and truncation summary.
+11. Metadata preview, Data Forge compatibility preview, and semantic enrichment preview/approval work.
+12. Memory promotion appends Memory Inbox and creates `RECORDED_IN`.
+13. Codex context export writes the configured Markdown file and redacts secrets.
 
 ## Reporting
 
