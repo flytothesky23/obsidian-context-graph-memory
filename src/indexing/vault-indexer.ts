@@ -5,6 +5,7 @@ import {
 } from "../extract/relation-candidates";
 import { NoteMetadataExtractor, type ExtractedNoteMetadata } from "../extract/note-metadata";
 import { Neo4jClient, sanitizeNeo4jError, type Neo4jQueryResult, type QueryParameters } from "../neo4j/client";
+import { RAW_FOLDER_GRAPH_SCOPE_PATH } from "../obsidian-graph";
 import type { ContextGraphMemorySettings } from "../types";
 import { IndexingReport } from "./index-report";
 import type { IndexQueueItem } from "./index-queue";
@@ -295,6 +296,10 @@ export class VaultIndexer {
 
   private shouldReadFile(file: TFile): boolean {
     if (!isMarkdownFile(file)) {
+      return false;
+    }
+
+    if (file.path === RAW_FOLDER_GRAPH_SCOPE_PATH) {
       return false;
     }
 

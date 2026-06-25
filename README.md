@@ -97,7 +97,7 @@ File Explorer shortcuts:
 - Right-click a Markdown note and choose `Neo4j 그래프 보기`.
 - Right-click a folder and choose `Neo4j 폴더 그래프 보기`.
 - Right-click a Markdown note and choose `Obsidian Raw local graph 열기` to open Obsidian's note-local graph.
-- Right-click a folder and choose `Obsidian Raw local graph 열기` to open Obsidian's graph view with a `path:"folder/"` filter applied.
+- Right-click a folder and choose `Obsidian Raw local graph 열기` to open Obsidian's local graph through a generated folder-scope note.
 
 ## Commands
 

@@ -109,7 +109,9 @@ The folder menu also provides:
 Obsidian Raw local graph 열기
 ```
 
-Obsidian's built-in local graph is note-centric, so folder scope is implemented with Obsidian's graph view and an automatic `path:"folder/"` search filter. Use the Neo4j folder graph when you need indexed relation summaries and use the raw Obsidian graph when you want Obsidian's native link visualization for the folder path.
+Obsidian's built-in local graph is note-centric, so folder scope is implemented by generating `00_System/Context Graph Memory/Raw Folder Local Graph.md`. That generated note links to the Markdown notes in the clicked folder, and the plugin opens Obsidian's `localgraph` view for that scope note. Use the Neo4j folder graph when you need indexed relation summaries and use the raw Obsidian graph when you want Obsidian's native link visualization for the folder path.
+
+The generated scope note is excluded from Neo4j indexing so it does not pollute the derived graph index.
 
 The folder graph uses the folder path as the scope. Settings control whether nested notes and one-hop external bridge relationships are included.
 

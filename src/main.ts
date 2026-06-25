@@ -19,11 +19,11 @@ import {
 import { Neo4jClient, sanitizeNeo4jError } from "./neo4j/client";
 import { Neo4jSchemaService } from "./neo4j/schema";
 import {
-  buildFolderGraphSearch,
-  buildFolderGraphViewState,
-  getExistingGraphLeaf,
-  OBSIDIAN_GLOBAL_GRAPH_COMMAND_IDS,
-  OBSIDIAN_LOCAL_GRAPH_COMMAND_IDS,
+  buildFolderLocalGraphViewState,
+  buildNoteLocalGraphViewState,
+  getExistingLocalGraphLeaf,
+  selectFolderMarkdownFiles,
+  writeRawFolderGraphScopeNote,
 } from "./obsidian-graph";
 import { SemanticEnrichmentApprovalModal } from "./semantic/semantic-enrichment-modal";
 import {
@@ -64,15 +64,6 @@ const GRAPH_FOLDER_INDEX_PREFIX = `${UI_PREFIX}: 그래프 조회 전 폴더 인
 const RELATED_GRAPH_READY_PREFIX = `${UI_PREFIX}: 관련 그래프 준비 완료`;
 const FOLDER_GRAPH_READY_PREFIX = `${UI_PREFIX}: 폴더 그래프 준비 완료`;
 
-interface ObsidianCommandRegistry {
-  listCommands?: () => Array<{ id: string }>;
-  executeCommandById?: (id: string) => boolean | void;
-}
-
-interface AppWithCommands {
-  commands?: ObsidianCommandRegistry;
-}
-
 export default class ContextGraphMemoryPlugin extends Plugin {
   settings: ContextGraphMemorySettings = { ...DEFAULT_SETTINGS };
   private vaultIndexer: VaultIndexer | null = null;
@@ -103,7 +94,13 @@ export default class ContextGraphMemoryPlugin extends Plugin {
       id: "open-obsidian-local-graph",
       name: COMMAND_NAMES.openObsidianLocalGraph,
       callback: async () => {
-        this.openObsidianLocalGraph("Obsidian Raw local graph를 열었습니다.");
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile || !isMarkdownFile(activeFile)) {
+          new Notice("Obsidian Raw local graph: 활성 마크다운 노트가 없습니다.");
+          return;
+        }
+
+        await this.openObsidianNoteRawGraph(activeFile);
       },
     });
 
@@ -435,7 +432,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
               .setTitle("Obsidian Raw local graph 열기")
               .setIcon("git-fork")
               .onClick(() => {
-                this.openObsidianLocalGraph("Obsidian Raw local graph를 열었습니다.");
+                void this.openObsidianNoteRawGraph(file);
               });
           });
           return;
@@ -658,52 +655,53 @@ export default class ContextGraphMemoryPlugin extends Plugin {
     new Notice(`${prefix}: 노드 ${result.summary.nodeCount}개, 엣지 ${result.summary.edgeCount}개.`);
   }
 
-  private openObsidianLocalGraph(
-    successMessage: string,
-    preferredCommandIds: readonly string[] = OBSIDIAN_LOCAL_GRAPH_COMMAND_IDS,
-  ): boolean {
-    const commands = (this.app as AppWithCommands).commands;
-    const commandId = preferredCommandIds.find((id) =>
-      commands?.listCommands?.().some((command) => command.id === id),
-    );
-
-    if (!commandId) {
-      new Notice("Obsidian 기본 로컬 그래프 명령을 찾지 못했습니다. 코어 플러그인에서 그래프 뷰가 활성화되어 있는지 확인하세요.");
-      return false;
-    }
-
-    commands?.executeCommandById?.(commandId);
-    new Notice(successMessage);
-    return true;
-  }
-
-  private async openObsidianFolderRawGraph(folderPath: string): Promise<boolean> {
-    const search = buildFolderGraphSearch(folderPath);
-
+  private async openObsidianNoteRawGraph(file: TFile): Promise<boolean> {
     try {
       const leaf =
-        getExistingGraphLeaf(this.app.workspace.getLeavesOfType("graph")) ??
+        getExistingLocalGraphLeaf(this.app.workspace.getLeavesOfType("localgraph")) ??
         this.app.workspace.getRightLeaf(false) ??
         this.app.workspace.getLeaf(true);
 
-      await leaf.setViewState(buildFolderGraphViewState(folderPath, leaf.getViewState()));
+      await leaf.setViewState(buildNoteLocalGraphViewState(file.path, leaf.getViewState()));
       await this.app.workspace.revealLeaf(leaf);
       await leaf.loadIfDeferred();
 
-      const scopeText = search.length > 0 ? `${folderPath} (${search})` : "vault 전체";
-      new Notice(`Obsidian Raw local graph를 폴더 범위로 열었습니다: ${scopeText}`);
+      new Notice(`Obsidian Raw local graph를 열었습니다: ${file.path}`);
       return true;
     } catch (error) {
-      const opened = this.openObsidianLocalGraph(
-        "Obsidian 기본 그래프는 열었지만 폴더 필터를 자동 적용하지 못했습니다.",
-        OBSIDIAN_GLOBAL_GRAPH_COMMAND_IDS,
+      new Notice(`Obsidian Raw local graph 열기 실패: ${sanitizeNeo4jError(error, this.settings)}`);
+      return false;
+    }
+  }
+
+  private async openObsidianFolderRawGraph(folderPath: string): Promise<boolean> {
+    try {
+      const markdownFiles = selectFolderMarkdownFiles(
+        this.app.vault.getMarkdownFiles(),
+        folderPath,
+        this.settings.folderGraphRecursive,
       );
 
-      if (opened && search.length > 0) {
-        new Notice(`그래프 검색 필터에 직접 입력하세요: ${search}`);
+      if (markdownFiles.length === 0) {
+        new Notice(`Obsidian Raw local graph: 폴더 안에 Markdown 노트가 없습니다: ${folderPath}`);
+        return false;
       }
 
-      return opened;
+      const scopeFile = await writeRawFolderGraphScopeNote(this.app.vault, folderPath, markdownFiles);
+      const leaf =
+        getExistingLocalGraphLeaf(this.app.workspace.getLeavesOfType("localgraph")) ??
+        this.app.workspace.getRightLeaf(false) ??
+        this.app.workspace.getLeaf(true);
+
+      await leaf.setViewState(buildFolderLocalGraphViewState(scopeFile.path, leaf.getViewState()));
+      await this.app.workspace.revealLeaf(leaf);
+      await leaf.loadIfDeferred();
+
+      new Notice(`Obsidian Raw local graph를 폴더 범위로 열었습니다: ${folderPath} · ${markdownFiles.length}개 노트`);
+      return true;
+    } catch (error) {
+      new Notice(`Obsidian Raw local graph 폴더 범위 열기 실패: ${sanitizeNeo4jError(error, this.settings)}`);
+      return false;
     }
   }
 }

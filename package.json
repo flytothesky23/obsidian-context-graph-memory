@@ -1,6 +1,6 @@
 {
   "name": "obsidian-context-graph-memory",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": false,
   "description": "Markdown 노트를 Neo4j에 인덱싱하고 문맥 그래프를 렌더링하는 Obsidian 플러그인입니다.",
   "license": "MIT",
