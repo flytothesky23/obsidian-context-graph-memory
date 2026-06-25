@@ -29,7 +29,8 @@ describe("cytoscape adapter", () => {
         originalId: "r1",
         source: "node:n1",
         target: "node:n2",
-        label: "LINKS_TO",
+        label: "링크",
+        displayLabel: "",
       },
       classes: "context-edge relation-links_to",
     });
@@ -110,6 +111,25 @@ describe("cytoscape adapter", () => {
 
     expect(edgeElements).toHaveLength(1);
     expect(edgeElements[0].data.id).toBe("edge:r1");
+  });
+
+  it("uses Korean display labels for semantic relationship edges", () => {
+    const result = createGraphResult();
+    result.edges[0] = {
+      id: "r1",
+      source: "n1",
+      target: "n2",
+      type: "RELATED_TO",
+      properties: {},
+    };
+
+    const edgeElement = graphResultToCytoscapeElements(result).find((element) => element.group === "edges");
+
+    expect(edgeElement?.data).toMatchObject({
+      label: "관련",
+      displayLabel: "관련",
+      type: "RELATED_TO",
+    });
   });
 
   it("prefixes Cytoscape ids to avoid node and edge id collisions", () => {

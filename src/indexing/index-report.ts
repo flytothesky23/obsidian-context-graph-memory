@@ -68,9 +68,9 @@ export class IndexingReport {
     };
   }
 
-  toNoticeMessage(prefix = "Indexing complete"): string {
+  toNoticeMessage(prefix = "인덱싱 완료"): string {
     const snapshot = this.toSnapshot();
-    return `${prefix}: ${snapshot.indexed} indexed, ${snapshot.skipped} skipped, ${snapshot.archived} archived, ${snapshot.failed} failed.`;
+    return `${prefix}: 인덱싱 ${snapshot.indexed}개, 건너뜀 ${snapshot.skipped}개, 아카이브 ${snapshot.archived}개, 실패 ${snapshot.failed}개.`;
   }
 }
 

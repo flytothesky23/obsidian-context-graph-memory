@@ -2,6 +2,8 @@ import type { GraphEdge, GraphNode, GraphResult } from "../graph/graph-scope";
 
 const DEFAULT_CURRENT_NOTE_MAX_CHARS = 12000;
 const MEMORY_TYPES = ["Preference", "Rule", "Decision"] as const;
+const SENSITIVE_PLACEHOLDER = "[마스킹]";
+const SENSITIVE_TOKEN_PLACEHOLDER = "[마스킹-토큰]";
 
 type MemoryType = (typeof MEMORY_TYPES)[number];
 
@@ -40,25 +42,25 @@ export function buildCodexContext(input: CodexContextBuildInput): string {
   const verification = buildVerificationSection(input.graphError, sanitizerOptions);
 
   return [
-    "# Codex Implementation Context",
+    "# Codex 구현 컨텍스트",
     "",
-    "## Current Note",
+    "## 현재 노트",
     "",
     currentNote,
     "",
-    "## Related Notes",
+    "## 연관 노트",
     "",
     relatedNotes,
     "",
-    "## Graph Memory",
+    "## 그래프 메모리",
     "",
     graphMemory,
     "",
-    "## Task",
+    "## 작업",
     "",
     task,
     "",
-    "## Verification",
+    "## 검증",
     "",
     verification,
     "",
@@ -70,30 +72,30 @@ export function sanitizeContextText(text: string, options: SanitizerOptions = {}
 
   for (const value of options.redactValues ?? []) {
     if (value.trim().length > 0) {
-      sanitized = sanitized.split(value).join("[masked]");
+      sanitized = sanitized.split(value).join(SENSITIVE_PLACEHOLDER);
     }
   }
 
   return sanitized
     .replace(
       /\b(password|passwd|token|secret|credential|credentials|api[_ -]?key|auth|authorization|login|runtime[_ -]?log|neo4jPassword)\b\s*[:=]\s*("[^"]*"|'[^']*'|\{[^}\n]*\}|[^\s,;]+)/giu,
-      (_match, key: string) => `${key}=[masked]`,
+      (_match, key: string) => `${key}=${SENSITIVE_PLACEHOLDER}`,
     )
     .replace(
       /(["'])(password|passwd|token|secret|credential|credentials|api[_ -]?key|auth|authorization|login|runtime[_ -]?log|neo4jPassword)\1\s*:\s*(["'])(.*?)\3/giu,
-      (_match, quote: string, key: string) => `${quote}${key}${quote}: "[masked]"`,
+      (_match, quote: string, key: string) => `${quote}${key}${quote}: "${SENSITIVE_PLACEHOLDER}"`,
     )
     .replace(
       /(["'])(password|passwd|token|secret|credential|credentials|api[_ -]?key|auth|authorization|login|runtime[_ -]?log|neo4jPassword)\1\s*:\s*\{[^}\n]*\}/giu,
-      (_match, quote: string, key: string) => `${quote}${key}${quote}: "[masked]"`,
+      (_match, quote: string, key: string) => `${quote}${key}${quote}: "${SENSITIVE_PLACEHOLDER}"`,
     )
     .replace(
       /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}/giu,
-      (_match, scheme: string) => `${scheme} [masked]`,
+      (_match, scheme: string) => `${scheme} ${SENSITIVE_PLACEHOLDER}`,
     )
     .replace(
       /\b(sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,})\b/gu,
-      "[masked-token]",
+      SENSITIVE_TOKEN_PLACEHOLDER,
     );
 }
 
@@ -106,15 +108,15 @@ function buildCurrentNoteSection(
   const rawContent = input.currentNote.content;
   const truncated = rawContent.length > maxChars;
   const content = sanitizeContextText(
-    truncated ? `${rawContent.slice(0, maxChars)}\n\n[Truncated at ${maxChars} characters]` : rawContent,
+    truncated ? `${rawContent.slice(0, maxChars)}\n\n[${maxChars}자에서 잘림]` : rawContent,
     sanitizerOptions,
   );
 
   return [
-    `- Path: \`${sanitizeInline(input.currentNote.path, sanitizerOptions)}\``,
-    `- Title: ${sanitizeInline(input.currentNote.title, sanitizerOptions)}`,
-    `- Exported: ${sanitizeInline(generatedAt, sanitizerOptions)}`,
-    `- Content truncated: ${truncated ? "yes" : "no"}`,
+    `- 경로: \`${sanitizeInline(input.currentNote.path, sanitizerOptions)}\``,
+    `- 제목: ${sanitizeInline(input.currentNote.title, sanitizerOptions)}`,
+    `- 내보낸 시각: ${sanitizeInline(generatedAt, sanitizerOptions)}`,
+    `- 본문 잘림: ${truncated ? "예" : "아니오"}`,
     "",
     fencedBlock("markdown", content),
   ].join("\n");
@@ -126,7 +128,7 @@ function buildRelatedNotesSection(
   sanitizerOptions: SanitizerOptions,
 ): string {
   if (!graph) {
-    return "- Related graph was unavailable during export.";
+    return "- 연관 그래프는 내보내기 시 조회할 수 없었습니다.";
   }
 
   const notes = graph.nodes
@@ -134,7 +136,7 @@ function buildRelatedNotesSection(
     .sort(compareNodesByLabel);
 
   if (notes.length === 0) {
-    return "- No related notes returned by the graph query.";
+    return "- 그래프 조회로 반환된 연관 노트가 없습니다.";
   }
 
   return notes
@@ -142,7 +144,7 @@ function buildRelatedNotesSection(
       const title = note.title ?? note.label;
       const path = note.path ?? "";
       const degree = getNodeDegree(note.id, graph.edges);
-      return `- ${formatObsidianNoteLink(path, title, sanitizerOptions)} - \`${sanitizeInline(path, sanitizerOptions)}\`, ${degree} relationships`;
+      return `- ${formatObsidianNoteLink(path, title, sanitizerOptions)} - \`${sanitizeInline(path, sanitizerOptions)}\`, 관계 ${degree}개`;
     })
     .join("\n");
 }
@@ -155,11 +157,11 @@ function buildGraphMemorySection(
   const lines: string[] = [];
 
   if (graphError) {
-    lines.push(`- Graph warning: ${sanitizeInline(graphError, sanitizerOptions)}`);
+    lines.push(`- 그래프 경고: ${sanitizeInline(graphError, sanitizerOptions)}`);
   }
 
   if (!graph) {
-    lines.push("- No graph summary or memory nodes were available.");
+    lines.push("- 그래프 요약 또는 메모리 노드가 조회되지 않았습니다.");
     return lines.join("\n");
   }
 
@@ -170,7 +172,7 @@ function buildGraphMemorySection(
     .sort((left, right) => `${getMemoryType(left)}:${left.label}`.localeCompare(`${getMemoryType(right)}:${right.label}`));
 
   if (memoryNodes.length === 0) {
-    lines.push("- No Preference/Rule/Decision memory nodes returned by the graph query.");
+    lines.push("- 그래프 조회에서 선호/규칙/결정 메모리 노드가 없습니다.");
     return lines.join("\n");
   }
 
@@ -181,7 +183,7 @@ function buildGraphMemorySection(
       continue;
     }
 
-    lines.push(`### ${type}`);
+    lines.push(`### ${formatMemoryType(type)}`);
     for (const node of nodes) {
       lines.push(formatMemoryNode(node, sanitizerOptions));
     }
@@ -193,14 +195,14 @@ function buildGraphMemorySection(
 
 function buildTaskSection(graphError: string | undefined, sanitizerOptions: SanitizerOptions): string {
   const lines = [
-    "- Use the Current Note section as the implementation source of truth.",
-    "- Use Related Notes and Graph Memory only as supporting context.",
-    "- Treat Neo4j graph data as a derived index that can be rebuilt from Markdown.",
-    "- Do not execute Codex CLI from this plugin command; this export only writes Markdown context.",
+    "- 구현의 출처는 '현재 노트' 섹션을 기준으로 삼으세요.",
+    "- '연관 노트'와 '그래프 메모리'는 보조 콘텍스트로만 사용하세요.",
+    "- Neo4j 그래프 데이터는 마크다운을 기반으로 재생성 가능한 파생 인덱스입니다.",
+    "- 이 플러그인 명령은 Codex CLI를 실행하지 않으며 마크다운 컨텍스트만 작성합니다.",
   ];
 
   if (graphError) {
-    lines.push(`- Resolve or accept the graph warning before relying on graph memory: ${sanitizeInline(graphError, sanitizerOptions)}`);
+    lines.push(`- 그래프 메모리를 신뢰하기 전 경고를 해결하거나 수락하세요: ${sanitizeInline(graphError, sanitizerOptions)}`);
   }
 
   return lines.join("\n");
@@ -208,13 +210,13 @@ function buildTaskSection(graphError: string | undefined, sanitizerOptions: Sani
 
 function buildVerificationSection(graphError: string | undefined, sanitizerOptions: SanitizerOptions): string {
   const lines = [
-    "- Run the task-specific verification commands from the source note or PRD.",
-    "- For plugin implementation tasks, run `npm test` and `npm run build` before reporting completion.",
-    "- Check generated outputs for required headings and confirm no credential, token, auth JSON, API key, or runtime log payload is present.",
+    "- 소스 노트나 PRD의 작업별 검증 명령을 실행하세요.",
+    "- 플러그인 구현 완료 보고 전 `npm test`와 `npm run build`를 실행하세요.",
+    "- 생성된 출력에서 필수 섹션이 존재하는지 확인하고 자격증명, 토큰, 인증/로그 페이로드가 포함되지 않았는지 점검하세요.",
   ];
 
   if (graphError) {
-    lines.push(`- Graph export warning captured: ${sanitizeInline(graphError, sanitizerOptions)}`);
+    lines.push(`- 그래프 내보내기 경고: ${sanitizeInline(graphError, sanitizerOptions)}`);
   }
 
   return lines.join("\n");
@@ -224,17 +226,17 @@ function buildGraphSummaryLines(graph: GraphResult, sanitizerOptions: SanitizerO
   const relationshipTypes = countRelationshipTypes(graph.edges);
   const target = graph.summary.targetPath ?? getScopeTarget(graph);
   const lines = [
-    `- Scope: ${graph.summary.scopeType}`,
-    `- Target: ${target ? `\`${sanitizeInline(target, sanitizerOptions)}\`` : "n/a"}`,
-    `- Depth: ${graph.summary.depth ?? "n/a"}`,
-    `- Nodes: ${graph.summary.nodeCount}`,
-    `- Edges: ${graph.summary.edgeCount}`,
-    `- Truncated: ${graph.summary.truncated ? "yes" : "no"}`,
-    `- Relationship types: ${formatRelationshipTypeCounts(relationshipTypes, sanitizerOptions)}`,
+    `- 범위: ${formatScopeType(graph.summary.scopeType)}`,
+    `- 대상: ${target ? `\`${sanitizeInline(target, sanitizerOptions)}\`` : "해당 없음"}`,
+    `- 깊이: ${graph.summary.depth ?? "해당 없음"}`,
+    `- 노드: ${graph.summary.nodeCount}개`,
+    `- 엣지: ${graph.summary.edgeCount}개`,
+    `- 잘림: ${graph.summary.truncated ? "예" : "아니오"}`,
+    `- 관계 유형: ${formatRelationshipTypeCounts(relationshipTypes, sanitizerOptions)}`,
   ];
 
   for (const warning of graph.summary.warnings) {
-    lines.push(`- Warning: ${sanitizeInline(warning, sanitizerOptions)}`);
+    lines.push(`- 경고: ${sanitizeInline(warning, sanitizerOptions)}`);
   }
 
   return lines;
@@ -248,10 +250,10 @@ function formatMemoryNode(node: GraphNode, sanitizerOptions: SanitizerOptions): 
   const createdAt = getStringProperty(node, "createdAt");
   const source = sourcePath
     ? formatObsidianNoteLink(sourcePath, sourceTitle ?? sourcePath, sanitizerOptions)
-    : "unknown source";
+    : "알 수 없는 출처";
   const suffix = createdAt ? ` (${sanitizeInline(createdAt, sanitizerOptions)})` : "";
 
-  return `- [${type}] ${sanitizeInline(text, sanitizerOptions)}${suffix}\n  Source: ${source}`;
+  return `- [${formatMemoryType(type)}] ${sanitizeInline(text, sanitizerOptions)}${suffix}\n  출처: ${source}`;
 }
 
 function isMemoryNode(node: GraphNode): boolean {
@@ -304,13 +306,77 @@ function countRelationshipTypes(edges: GraphEdge[]): Map<string, number> {
 
 function formatRelationshipTypeCounts(counts: Map<string, number>, sanitizerOptions: SanitizerOptions): string {
   if (counts.size === 0) {
-    return "none";
+    return "없음";
   }
 
   return [...counts.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([type, count]) => `${sanitizeInline(type, sanitizerOptions)}=${count}`)
+    .sort(([left], [right]) => {
+      const leftLabel = formatRelationshipTypeLabel(left);
+      const rightLabel = formatRelationshipTypeLabel(right);
+      return leftLabel.localeCompare(rightLabel) || left.localeCompare(right);
+    })
+    .map(([type, count]) => `${formatRelationshipTypeLabel(type)}=${count}`)
     .join(", ");
+}
+
+function formatScopeType(scopeType: GraphResult["summary"]["scopeType"]): string {
+  if (scopeType === "note") {
+    return "노트";
+  }
+
+  if (scopeType === "folder") {
+    return "폴더";
+  }
+
+  if (scopeType === "selection") {
+    return "선택";
+  }
+
+  return String(scopeType);
+}
+
+function formatRelationshipTypeLabel(type: string): string {
+  if (type === "LINKS_TO") {
+    return "링크";
+  }
+
+  if (type === "HAS_TAG") {
+    return "태그";
+  }
+
+  if (type === "RELATED_TO") {
+    return "관련";
+  }
+
+  if (type === "SUPPORTS") {
+    return "지원";
+  }
+
+  if (type === "DEPENDS_ON") {
+    return "의존";
+  }
+
+  if (type === "PART_OF") {
+    return "구성";
+  }
+
+  if (type === "AFFECTS") {
+    return "영향";
+  }
+
+  if (type === "EVIDENCED_BY") {
+    return "근거";
+  }
+
+  if (type === "MENTIONS") {
+    return "언급";
+  }
+
+  if (type === "RECORDED_IN") {
+    return "기록";
+  }
+
+  return type;
 }
 
 function getScopeTarget(graph: GraphResult): string | undefined {
@@ -335,7 +401,7 @@ function sanitizeInline(value: string, options: SanitizerOptions): string {
 }
 
 function fencedBlock(language: string, content: string): string {
-  const normalizedContent = content.length > 0 ? content : "(empty)";
+  const normalizedContent = content.length > 0 ? content : "(내용 없음)";
   let fence = "```";
 
   while (normalizedContent.includes(fence)) {
@@ -351,6 +417,18 @@ function normalizeMaxChars(value: number | undefined): number {
   }
 
   return Math.max(1, Math.trunc(value));
+}
+
+function formatMemoryType(type: MemoryType): string {
+  if (type === "Preference") {
+    return "선호";
+  }
+
+  if (type === "Rule") {
+    return "규칙";
+  }
+
+  return "결정";
 }
 
 function compareNodesByLabel(left: GraphNode, right: GraphNode): number {

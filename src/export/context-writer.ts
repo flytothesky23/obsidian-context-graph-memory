@@ -17,7 +17,7 @@ export class CodexContextWriter {
     }
 
     if (!isTFile(existing)) {
-      throw new Error(`Codex context output path is not a file: ${normalizedPath}`);
+      throw new Error(`Codex 컨텍스트 출력 경로가 파일이 아닙니다: ${normalizedPath}`);
     }
 
     await this.vault.modify(existing, content);
@@ -41,7 +41,7 @@ export class CodexContextWriter {
       }
 
       if (!isTFolder(existing)) {
-        throw new Error(`Codex context parent path is not a folder: ${currentPath}`);
+        throw new Error(`Codex 컨텍스트 상위 경로가 폴더가 아닙니다: ${currentPath}`);
       }
     }
   }

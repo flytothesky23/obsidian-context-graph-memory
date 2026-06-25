@@ -1,8 +1,8 @@
 {
   "name": "obsidian-context-graph-memory",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": false,
-  "description": "Obsidian plugin for indexing Markdown notes into Neo4j and rendering context graphs.",
+  "description": "Markdown 노트를 Neo4j에 인덱싱하고 문맥 그래프를 렌더링하는 Obsidian 플러그인입니다.",
   "license": "MIT",
   "type": "module",
   "main": "main.js",

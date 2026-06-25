@@ -46,7 +46,7 @@ describe("semantic enrichment", () => {
       normalizedTargetName: "graph decision",
       conceptKind: "decision",
       confidence: 0.82,
-      reason: "Evidence supports this decision with token=[redacted]",
+      reason: "Evidence supports this decision with token=[마스킹]",
       provenance: {
         source: "manual-frontmatter",
         origin: "data-forge",
@@ -106,7 +106,7 @@ describe("semantic enrichment", () => {
     expect(preview.mode).toBe("off");
     expect(preview.candidates).toEqual([]);
     expect(preview.warnings).toEqual([
-      "Semantic enrichment mode is off. Enable manual mode before approving candidates.",
+      "시맨틱 보강이 비활성 상태입니다. 승인하려면 수동 모드를 켜세요.",
     ]);
   });
 
@@ -176,7 +176,7 @@ describe("semantic enrichment", () => {
 
   it("rejects unsupported dynamic relationship types", () => {
     expect(() => buildSemanticRelationUpsertQuery("DETACH_DELETE" as never)).toThrow(
-      "Unsupported semantic relation type: DETACH_DELETE",
+      "지원하지 않는 시맨틱 관계 유형입니다: DETACH_DELETE",
     );
   });
 });

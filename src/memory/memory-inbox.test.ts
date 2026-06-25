@@ -9,13 +9,13 @@ import type { PromotedMemory } from "./memory-promotion";
 describe("memory inbox", () => {
   it("formats a memory entry with type and Obsidian source link", () => {
     expect(formatMemoryInboxEntry(createMemory("Rule", "Always verify with npm test."))).toBe(
-      "- [Rule] Always verify with npm test.\n  Source: [[Projects/Context Graph|Context Graph]]",
+      "- [규칙] Always verify with npm test.\n  출처: [[Projects/Context Graph|Context Graph]]",
     );
   });
 
   it("masks credential-like key value pairs in inbox text", () => {
     expect(sanitizeMemoryInboxText('token="abc123" and password: hunter2')).toBe(
-      "token=[masked] and password=[masked]",
+      "token=[마스킹] and password=[마스킹]",
     );
   });
 
@@ -24,7 +24,7 @@ describe("memory inbox", () => {
       sanitizeMemoryInboxText(
         '"auth":"abc123", Bearer eyJhbGciOiJIUzI1NiIs, ghp_1234567890abcdef',
       ),
-    ).toBe('"auth": "[masked]", Bearer [masked], [masked-token]');
+    ).toBe('"auth": "[마스킹]", Bearer [마스킹], [마스킹-토큰]');
   });
 
   it("creates a Memory Inbox document when content is empty", () => {
@@ -35,7 +35,7 @@ describe("memory inbox", () => {
     );
 
     expect(result).toBe(
-      "# Memory Inbox\n\n## 2026-06-24\n\n- [Preference] Prefer explicit user approval.\n  Source: [[Projects/Context Graph|Context Graph]]\n",
+      "# 메모리 인박스\n\n## 2026-06-24\n\n- [선호] Prefer explicit user approval.\n  출처: [[Projects/Context Graph|Context Graph]]\n",
     );
   });
 
@@ -65,11 +65,11 @@ describe("memory inbox", () => {
       [
         "## 2026-06-24",
         "",
-        "- [Rule] Existing rule",
-        "  Source: [[A]]",
+        "- [규칙] Existing rule",
+        "  출처: [[A]]",
         "",
-        "- [Decision] Keep Neo4j as a derived index.",
-        "  Source: [[Projects/Context Graph|Context Graph]]",
+        "- [결정] Keep Neo4j as a derived index.",
+        "  출처: [[Projects/Context Graph|Context Graph]]",
         "",
         "## 2026-06-23",
       ].join("\n"),

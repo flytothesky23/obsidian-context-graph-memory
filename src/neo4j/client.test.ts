@@ -86,18 +86,47 @@ describe("sanitizeNeo4jError", () => {
     };
 
     const message = sanitizeNeo4jError(
-      new Error("Authentication failed with password=super-secret-password"),
+      new Error("Query failed with password=super-secret-password"),
       settings,
     );
 
     expect(message).not.toContain("super-secret-password");
-    expect(message).toContain("[redacted]");
+    expect(message).toContain("[마스킹]");
   });
 
   it("redacts credential-like fragments from driver errors", () => {
     const message = sanitizeNeo4jError(new Error("Bad credentials=abc123"));
 
     expect(message).not.toContain("abc123");
-    expect(message).toContain("[redacted]");
+    expect(message).toContain("[마스킹]");
+  });
+
+  it("localizes Neo4j routing discovery errors", () => {
+    const message = sanitizeNeo4jError(
+      new Error("Could not perform discovery. No routing servers available."),
+    );
+
+    expect(message).toContain("Neo4j 라우팅 서버를 찾지 못했습니다");
+    expect(message).toContain("bolt://localhost:7687");
+    expect(message).not.toContain("No routing servers available");
+  });
+
+  it("localizes browser WebSocket connection errors", () => {
+    const message = sanitizeNeo4jError(
+      new Error("WebSocket connection failure. WebSocket `readyState` is: 3"),
+    );
+
+    expect(message).toContain("Neo4j WebSocket 연결에 실패했습니다");
+    expect(message).toContain("bolt://localhost:7687");
+    expect(message).not.toContain("WebSocket `readyState`");
+  });
+
+  it("localizes initial password change errors", () => {
+    const message = sanitizeNeo4jError(
+      new Error("The credentials you provided were valid, but must be changed before you can use this instance."),
+    );
+
+    expect(message).toContain("Neo4j 초기 비밀번호 변경이 필요합니다");
+    expect(message).not.toContain("must be changed");
   });
 });

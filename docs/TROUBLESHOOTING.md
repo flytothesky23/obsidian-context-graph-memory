@@ -25,7 +25,7 @@ Check the first TypeScript error. The production build depends on typecheck pass
 Check:
 
 - Neo4j is running.
-- The URI matches the server, for example `neo4j://localhost:7687`.
+- The URI matches the server, for example `bolt://localhost:7687` for a local single Neo4j instance.
 - Username and password are entered in plugin settings.
 - The selected database exists.
 - Local firewall or VPN settings are not blocking Bolt traffic.

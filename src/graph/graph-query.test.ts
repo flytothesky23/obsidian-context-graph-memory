@@ -14,6 +14,7 @@ describe("buildGraphQuery", () => {
     const query = buildGraphQuery(scope);
 
     expect(query.cypher).toContain("[*1..2]");
+    expect(query.cypher).toContain('type(rel) <> "HAS_TAG"');
     expect(query.cypher).toContain("WITH start, collect(DISTINCT graphPath) AS graphPaths, collect(DISTINCT neighbor) AS neighbors");
     expect(query.cypher).toContain("WITH graphPaths, [node IN ([start] + neighbors) WHERE node IS NOT NULL] AS candidateNodes");
     expect(query.cypher).not.toContain("[start] + collect(DISTINCT neighbor)");
@@ -33,6 +34,7 @@ describe("buildGraphQuery", () => {
     expect(query.cypher).toContain("folderNote.folder STARTS WITH $folderPrefix");
     expect(query.cypher).toContain("ORDER BY folderNote.path");
     expect(query.cypher).toContain("WITH folderNodes, folderNodes[0..$maxNodes] AS seedNodes");
+    expect(query.cypher).toContain('type(rel) <> "HAS_TAG"');
     expect(query.cypher).toContain("truncationReason");
     expect(query.cypher).toContain("folderNodeIds");
     expect(query.cypher).toContain("externalBridgeNodeIds");
@@ -119,7 +121,7 @@ describe("GraphQueryService", () => {
 
     expect(result.nodes).toHaveLength(1);
     expect(result.edges).toHaveLength(0);
-    expect(result.summary.warnings).toEqual([`Graph was truncated at ${DEFAULT_SETTINGS.maxGraphNodes} nodes.`]);
+    expect(result.summary.warnings).toEqual([`그래프는 ${DEFAULT_SETTINGS.maxGraphNodes}개 노드에서 잘렸습니다.`]);
   });
 
   it("summarizes folder internal notes, isolated notes, and external bridge notes", () => {
@@ -157,7 +159,7 @@ describe("GraphQueryService", () => {
     expect(result.nodes.find((node) => node.id === "internal-a")?.scopeRole).toBe("folder-internal");
     expect(result.nodes.find((node) => node.id === "external-x")?.scopeRole).toBe("external-bridge");
     expect(result.summary.warnings).toEqual([
-      "Folder graph was truncated at 5 nodes after showing folder notes and before all external bridges could be shown.",
+      "폴더 그래프는 폴더 노트 표시 후 외부 브릿지 노드가 모두 표시되기 전에 5개 노드에서 잘렸습니다.",
     ]);
     expect(result.summary.folder).toMatchObject({
       totalInternalNotes: 4,

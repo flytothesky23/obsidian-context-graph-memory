@@ -86,11 +86,11 @@ export function buildDataForgeCompatibilityReport(
 
 function buildWarnings(mode: DataForgeCompatibilityMode, detected: boolean): string[] {
   if (mode === "off" && detected) {
-    return ["Data Forge-compatible frontmatter is present, but compatibility mode is off."];
+    return ["Data Forge 호환 프론트매터가 존재하지만 호환성 모드가 비활성입니다."];
   }
 
   if (mode === "frontmatter" && !detected) {
-    return ["No Data Forge-compatible frontmatter fields were found."];
+    return ["Data Forge 호환 프론트매터 항목을 찾지 못했습니다."];
   }
 
   return [];

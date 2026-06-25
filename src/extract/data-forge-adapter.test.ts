@@ -89,7 +89,7 @@ describe("DataForgeMetadataAdapter", () => {
     expect(report.relationCandidateCount).toBe(0);
     expect(report.relationCandidates).toEqual([]);
     expect(report.warnings).toEqual([
-      "Data Forge-compatible frontmatter is present, but compatibility mode is off.",
+      "Data Forge 호환 프론트매터가 존재하지만 호환성 모드가 비활성입니다.",
     ]);
   });
 });

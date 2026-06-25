@@ -24,7 +24,7 @@ export interface ContextGraphMemorySettings {
 }
 
 export const DEFAULT_SETTINGS: ContextGraphMemorySettings = {
-  neo4jUri: "neo4j://localhost:7687",
+  neo4jUri: "bolt://localhost:7687",
   neo4jUsername: "neo4j",
   neo4jPassword: "",
   neo4jDatabase: "neo4j",
@@ -35,7 +35,7 @@ export const DEFAULT_SETTINGS: ContextGraphMemorySettings = {
   includeTags: [],
   memoryInboxPath: "00_System/Memory Inbox.md",
   codexContextOutputPath: "00_System/Codex Context.md",
-  maxGraphDepth: 2,
+  maxGraphDepth: 1,
   maxGraphNodes: 80,
   graphRenderer: "cytoscape",
   graphLayout: "cose",

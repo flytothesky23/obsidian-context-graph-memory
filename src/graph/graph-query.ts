@@ -115,7 +115,8 @@ function buildNoteGraphQuery(scope: NoteGraphScope): GraphQuery {
 MATCH (start:Note {path: $path})
 WHERE coalesce(start.archived, false) = false
 OPTIONAL MATCH graphPath = (start)-[*1..${depth}]-(neighbor)
-WHERE all(node IN nodes(graphPath) WHERE NOT ("Note" IN labels(node)) OR coalesce(node.archived, false) = false)
+WHERE all(rel IN relationships(graphPath) WHERE type(rel) <> "HAS_TAG")
+  AND all(node IN nodes(graphPath) WHERE NOT ("Note" IN labels(node)) OR coalesce(node.archived, false) = false)
 WITH start, collect(DISTINCT graphPath) AS graphPaths, collect(DISTINCT neighbor) AS neighbors
 WITH graphPaths, [node IN ([start] + neighbors) WHERE node IS NOT NULL] AS candidateNodes
 WITH graphPaths, candidateNodes[0..$maxNodes] AS limitedNodes, size(candidateNodes) > $maxNodes AS truncated
@@ -164,6 +165,7 @@ WITH collect(folderNote) AS folderNodes
 WITH folderNodes, folderNodes[0..$maxNodes] AS seedNodes, size(folderNodes) > $maxNodes AS folderTruncated
 OPTIONAL MATCH (source)-[rel]-(target)
 WHERE source IN seedNodes
+  AND type(rel) <> "HAS_TAG"
   AND (target IN seedNodes OR $includeExternalBridges = true)
   AND (NOT ("Note" IN labels(target)) OR coalesce(target.archived, false) = false)
 WITH folderNodes, seedNodes, folderTruncated, collect(DISTINCT rel) AS rels, collect(DISTINCT target) AS relatedNodes
@@ -237,6 +239,7 @@ WITH collect(DISTINCT seed) AS seedNodes
 WITH seedNodes[0..$maxNodes] AS seedNodes, size(seedNodes) > $maxNodes AS seedTruncated
 OPTIONAL MATCH (source)-[rel]-(target)
 WHERE source IN seedNodes
+  AND type(rel) <> "HAS_TAG"
   AND (target IN seedNodes OR $includeExternalBridges = true)
   AND (NOT ("Note" IN labels(target)) OR coalesce(target.archived, false) = false)
 WITH seedNodes,
@@ -433,22 +436,20 @@ function buildGraphWarnings(
   }
 
   if (scope.type !== "folder" || !folderSummary?.truncationReason) {
-    return [`Graph was truncated at ${scope.maxNodes} nodes.`];
+    return [`그래프는 ${scope.maxNodes}개 노드에서 잘렸습니다.`];
   }
 
   if (folderSummary.truncationReason === "folder-note-limit") {
-    return [
-      `Folder graph was truncated at ${scope.maxNodes} nodes before all folder notes could be shown.`,
-    ];
+    return [`폴더 그래프는 ${scope.maxNodes}개 노드 제한 이전에 폴더 노트를 모두 표시할 수 없어 잘렸습니다.`];
   }
 
   if (folderSummary.truncationReason === "external-bridge-limit") {
     return [
-      `Folder graph was truncated at ${scope.maxNodes} nodes after showing folder notes and before all external bridges could be shown.`,
+      `폴더 그래프는 폴더 노트 표시 후 외부 브릿지 노드가 모두 표시되기 전에 ${scope.maxNodes}개 노드에서 잘렸습니다.`,
     ];
   }
 
-  return [`Graph was truncated at ${scope.maxNodes} nodes.`];
+  return [`그래프는 ${scope.maxNodes}개 노드에서 잘렸습니다.`];
 }
 
 function isNoteNode(node: GraphNode): boolean {
@@ -505,7 +506,7 @@ function resolveNodeLabel(labels: string[], properties: Record<string, unknown>)
     return properties.path.split("/").pop()?.replace(/\.md$/u, "") ?? properties.path;
   }
 
-  return labels[0] ?? "Node";
+  return labels[0] ?? "노드";
 }
 
 function isRawGraphNode(value: RawGraphNode): value is RawGraphNode {

@@ -22,7 +22,7 @@ export class MetadataPreviewModal extends Modal {
       overflow: "auto",
     });
 
-    contentEl.createEl("h2", { text: "Metadata Extraction Preview" });
+    contentEl.createEl("h2", { text: "메타데이터 추출 미리보기" });
     this.renderSummary(contentEl);
     this.renderDataForgeReport(contentEl);
     this.renderRelationCandidates(contentEl);
@@ -34,42 +34,42 @@ export class MetadataPreviewModal extends Modal {
 
   private renderSummary(parentEl: HTMLElement): void {
     const { metadata, summary } = this.payload;
-    const sectionEl = createSection(parentEl, "Note Summary");
+    const sectionEl = createSection(parentEl, "노트 요약");
 
-    createKeyValueRow(sectionEl, "Path", metadata.note.path);
-    createKeyValueRow(sectionEl, "Title", metadata.note.title);
+    createKeyValueRow(sectionEl, "경로", metadata.note.path);
+    createKeyValueRow(sectionEl, "제목", metadata.note.title);
     createKeyValueRow(
       sectionEl,
-      "Extracted",
+      "추출 건수",
       [
-        `${summary.tags} tags`,
-        `${summary.wikilinks} wikilinks`,
-        `${summary.markdownLinks} markdown links`,
-        `${summary.headings} headings`,
-        `${summary.tasks} tasks`,
-        `${summary.relationEdges} relation values`,
-        `${summary.dataForgeFields} Data Forge fields`,
+        `${summary.tags}개 태그`,
+        `${summary.wikilinks}개 위키링크`,
+        `${summary.markdownLinks}개 마크다운 링크`,
+        `${summary.headings}개 제목`,
+        `${summary.tasks}개 태스크`,
+        `${summary.relationEdges}개 관계 값`,
+        `${summary.dataForgeFields}개 Data Forge 필드`,
       ].join(", "),
     );
   }
 
   private renderDataForgeReport(parentEl: HTMLElement): void {
     const report = this.payload.dataForgeCompatibility;
-    const sectionEl = createSection(parentEl, "Data Forge Compatibility");
+    const sectionEl = createSection(parentEl, "Data Forge 호환성");
 
-    createKeyValueRow(sectionEl, "Mode", report.mode);
-    createKeyValueRow(sectionEl, "Detected", report.detected ? "yes" : "no");
-    createKeyValueRow(sectionEl, "Runtime calls", report.runtimeRequired ? "required" : "not used");
-    createKeyValueRow(sectionEl, "Relation candidates", String(report.relationCandidateCount));
+    createKeyValueRow(sectionEl, "모드", formatDataForgeMode(report.mode));
+    createKeyValueRow(sectionEl, "감지됨", report.detected ? "예" : "아니오");
+    createKeyValueRow(sectionEl, "런타임 호출", report.runtimeRequired ? "필요" : "미사용");
+    createKeyValueRow(sectionEl, "관계 후보 수", String(report.relationCandidateCount));
 
     if (report.fields.length > 0) {
       createTable(
         sectionEl,
-        ["Field", "Value"],
+        ["필드", "값"],
         report.fields.map((field) => [field.name, formatFieldValue(field)]),
       );
     } else {
-      sectionEl.createEl("p", { text: "No Data Forge-specific frontmatter fields found." });
+      sectionEl.createEl("p", { text: "Data Forge 전용 프론트매터 필드를 찾지 못했습니다." });
     }
 
     if (report.warnings.length > 0) {
@@ -84,24 +84,67 @@ export class MetadataPreviewModal extends Modal {
 
   private renderRelationCandidates(parentEl: HTMLElement): void {
     const candidates = this.payload.dataForgeCompatibility.relationCandidates;
-    const sectionEl = createSection(parentEl, "Relation Candidates");
+    const sectionEl = createSection(parentEl, "관계 후보");
 
     if (candidates.length === 0) {
-      sectionEl.createEl("p", { text: "No relation candidates available for preview." });
+      sectionEl.createEl("p", { text: "미리보기 가능한 관계 후보가 없습니다." });
       return;
     }
 
     createTable(
       sectionEl,
-      ["Field", "Relationship", "Target", "Kind"],
+      ["필드", "관계", "대상", "유형"],
       candidates.map((candidate) => [
         candidate.field,
-        candidate.relationshipType,
+        formatRelationType(candidate.relationshipType),
         candidate.name,
-        candidate.conceptKind,
+        formatConceptKind(candidate.conceptKind),
       ]),
     );
   }
+}
+
+const SENSITIVE_PLACEHOLDER = "[마스킹]";
+const SENSITIVE_TOKEN_PLACEHOLDER = "[토큰-마스킹]";
+
+function formatDataForgeMode(mode: string): string {
+  if (mode === "frontmatter") {
+    return "프론트매터";
+  }
+
+  if (mode === "off") {
+    return "비활성";
+  }
+
+  return mode;
+}
+
+function formatConceptKind(conceptKind: string): string {
+  if (conceptKind === "concept") {
+    return "개념";
+  }
+
+  if (conceptKind === "source") {
+    return "출처";
+  }
+
+  if (conceptKind === "person") {
+    return "인물";
+  }
+
+  if (conceptKind === "organization") {
+    return "조직";
+  }
+
+  if (conceptKind === "system") {
+    return "시스템";
+  }
+
+  if (conceptKind === "project") {
+    return "프로젝트";
+  }
+
+  return conceptKind;
 }
 
 function createSection(parentEl: HTMLElement, title: string): HTMLDivElement {
@@ -173,7 +216,7 @@ function formatFieldValue(field: DataForgeFieldEntry): string {
 
 function stringifyPreviewValue(key: string, value: unknown): string {
   if (isSensitiveKey(key)) {
-    return "[redacted]";
+    return SENSITIVE_PLACEHOLDER;
   }
 
   if (typeof value === "string") {
@@ -202,9 +245,45 @@ function sanitizePreviewValue(value: unknown): unknown {
 
   const sanitized: Record<string, unknown> = {};
   for (const [key, nestedValue] of Object.entries(value)) {
-    sanitized[key] = isSensitiveKey(key) ? "[redacted]" : sanitizePreviewValue(nestedValue);
+    sanitized[key] = isSensitiveKey(key) ? SENSITIVE_PLACEHOLDER : sanitizePreviewValue(nestedValue);
   }
   return sanitized;
+}
+
+function formatRelationType(type: string): string {
+  if (type === "RELATED_TO") {
+    return "관련";
+  }
+
+  if (type === "SUPPORTS") {
+    return "지원";
+  }
+
+  if (type === "DEPENDS_ON") {
+    return "의존";
+  }
+
+  if (type === "PART_OF") {
+    return "구성";
+  }
+
+  if (type === "AFFECTS") {
+    return "영향";
+  }
+
+  if (type === "EVIDENCED_BY") {
+    return "근거";
+  }
+
+  if (type === "MENTIONS") {
+    return "언급";
+  }
+
+  if (type === "RECORDED_IN") {
+    return "기록";
+  }
+
+  return type;
 }
 
 function isSensitiveKey(key: string): boolean {

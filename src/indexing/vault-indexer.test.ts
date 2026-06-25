@@ -135,6 +135,30 @@ describe("VaultIndexer", () => {
     expect(report.toSnapshot()).toMatchObject({ indexed: 1, skipped: 1 });
   });
 
+  it("indexes only Markdown files under the requested folder", async () => {
+    const direct = createFile("Projects/A.md", "A");
+    const nested = createFile("Projects/Nested/B.md", "B");
+    const outside = createFile("Archive/C.md", "C");
+    const calls: QueryCall[] = [];
+    const app = createApp({
+      files: [direct, nested, outside],
+      contents: {
+        "Projects/A.md": "# A",
+        "Projects/Nested/B.md": "# B",
+        "Archive/C.md": "# C",
+      },
+    });
+    const indexer = new VaultIndexer(app, DEFAULT_SETTINGS, () => createRunner(calls));
+
+    const report = await indexer.indexFolder("Projects", true);
+
+    expect(report.toSnapshot()).toMatchObject({ attempted: 2, indexed: 2, skipped: 0 });
+    expect(calls.filter((call) => call.cypher === UPSERT_NOTE_QUERY).map((call) => call.parameters?.note)).toEqual([
+      expect.objectContaining({ path: "Projects/A.md" }),
+      expect.objectContaining({ path: "Projects/Nested/B.md" }),
+    ]);
+  });
+
   it("processes rename and delete queue items by archiving old paths", async () => {
     const file = createFile("New.md", "New");
     const calls: QueryCall[] = [];

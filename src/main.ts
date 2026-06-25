@@ -28,6 +28,44 @@ import { ContextGraphMemorySettingTab } from "./settings";
 import { DEFAULT_SETTINGS, mergeSettings, type ContextGraphMemorySettings } from "./types";
 import { GraphView, VIEW_TYPE_CONTEXT_GRAPH } from "./views/graph-view";
 
+const UI_PREFIX = "컨텍스트 그래프 메모리";
+
+const COMMAND_NAMES = {
+  openGraphPanel: `${UI_PREFIX}: 그래프 패널 열기`,
+  openObsidianLocalGraph: `${UI_PREFIX}: Obsidian 기본 로컬 그래프 열기`,
+  testNeo4jConnection: `${UI_PREFIX}: Neo4j 연결 테스트`,
+  initializeNeo4jSchema: `${UI_PREFIX}: Neo4j 스키마 초기화`,
+  indexCurrentNote: `${UI_PREFIX}: 현재 노트 인덱싱`,
+  indexVault: `${UI_PREFIX}: 저장소 전체 인덱싱`,
+  reindexChangedNotes: `${UI_PREFIX}: 변경 노트 재인덱싱`,
+  showMetadataPreview: `${UI_PREFIX}: 메타데이터 추출 미리보기`,
+  previewSemanticCandidates: `${UI_PREFIX}: 시맨틱 보강 후보 미리보기`,
+  showRelatedGraph: `${UI_PREFIX}: 관련 그래프 보기`,
+  showGraphForFolder: `${UI_PREFIX}: 폴더 그래프 보기`,
+  promoteSelection: `${UI_PREFIX}: 선택 텍스트 장기기억 승격`,
+  exportCodexContext: `${UI_PREFIX}: 현재 노트 Codex 컨텍스트 내보내기`,
+};
+
+const NOTICE_PREFIX = `${UI_PREFIX}:`;
+const AUTO_INDEX_PREFIX = `${UI_PREFIX} 자동 인덱싱`;
+const STARTUP_INDEX_PREFIX = `${UI_PREFIX} 시작 시 인덱싱`;
+const INDEX_CURRENT_PREFIX = `${UI_PREFIX}: 현재 노트 인덱싱`;
+const INDEX_VAULT_PREFIX = `${UI_PREFIX}: 저장소 전체 인덱싱`;
+const REINDEX_CHANGED_PREFIX = `${UI_PREFIX}: 변경 노트 재인덱싱`;
+const GRAPH_FILE_INDEX_PREFIX = `${UI_PREFIX}: 그래프 조회 전 노트 인덱싱`;
+const GRAPH_FOLDER_INDEX_PREFIX = `${UI_PREFIX}: 그래프 조회 전 폴더 인덱싱`;
+const RELATED_GRAPH_READY_PREFIX = `${UI_PREFIX}: 관련 그래프 준비 완료`;
+const FOLDER_GRAPH_READY_PREFIX = `${UI_PREFIX}: 폴더 그래프 준비 완료`;
+
+interface ObsidianCommandRegistry {
+  listCommands?: () => Array<{ id: string }>;
+  executeCommandById?: (id: string) => boolean | void;
+}
+
+interface AppWithCommands {
+  commands?: ObsidianCommandRegistry;
+}
+
 export default class ContextGraphMemoryPlugin extends Plugin {
   settings: ContextGraphMemorySettings = { ...DEFAULT_SETTINGS };
   private vaultIndexer: VaultIndexer | null = null;
@@ -42,18 +80,29 @@ export default class ContextGraphMemoryPlugin extends Plugin {
     this.createIndexingServices();
 
     this.registerView(VIEW_TYPE_CONTEXT_GRAPH, (leaf) => new GraphView(leaf, this.settings));
+    this.addRibbonIcon("network", "컨텍스트 그래프 메모리 열기", () => {
+      void this.openGraphPanel(this.lastGraphResult ?? undefined);
+    });
 
     this.addCommand({
       id: "open-graph-panel",
-      name: "Context Graph Memory: Open Graph Panel",
+      name: COMMAND_NAMES.openGraphPanel,
       callback: async () => {
         await this.openGraphPanel(this.lastGraphResult ?? undefined);
       },
     });
 
     this.addCommand({
+      id: "open-obsidian-local-graph",
+      name: COMMAND_NAMES.openObsidianLocalGraph,
+      callback: async () => {
+        this.openObsidianLocalGraph("Obsidian 기본 로컬 그래프를 열었습니다.");
+      },
+    });
+
+    this.addCommand({
       id: "test-neo4j-connection",
-      name: "Context Graph Memory: Test Neo4j Connection",
+      name: COMMAND_NAMES.testNeo4jConnection,
       callback: async () => {
         await this.testNeo4jConnection();
       },
@@ -61,7 +110,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "initialize-neo4j-schema",
-      name: "Context Graph Memory: Initialize Neo4j Schema",
+      name: COMMAND_NAMES.initializeNeo4jSchema,
       callback: async () => {
         await this.initializeNeo4jSchema();
       },
@@ -69,7 +118,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "index-current-note",
-      name: "Context Graph Memory: Index Current Note",
+      name: COMMAND_NAMES.indexCurrentNote,
       callback: async () => {
         await this.indexCurrentNote();
       },
@@ -77,7 +126,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "index-vault",
-      name: "Context Graph Memory: Index Vault",
+      name: COMMAND_NAMES.indexVault,
       callback: async () => {
         await this.indexVault();
       },
@@ -85,7 +134,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "reindex-changed-notes",
-      name: "Context Graph Memory: Reindex Changed Notes",
+      name: COMMAND_NAMES.reindexChangedNotes,
       callback: async () => {
         await this.flushChangedNotes();
       },
@@ -93,7 +142,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "show-metadata-extraction-preview",
-      name: "Context Graph Memory: Show Metadata Extraction Preview",
+      name: COMMAND_NAMES.showMetadataPreview,
       callback: async () => {
         await this.showMetadataExtractionPreview();
       },
@@ -101,7 +150,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "preview-semantic-enrichment-candidates",
-      name: "Context Graph Memory: Preview Semantic Enrichment Candidates",
+      name: COMMAND_NAMES.previewSemanticCandidates,
       callback: async () => {
         await this.previewSemanticEnrichmentCandidates();
       },
@@ -109,7 +158,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "show-related-graph",
-      name: "Context Graph Memory: Show Related Graph",
+      name: COMMAND_NAMES.showRelatedGraph,
       callback: async () => {
         await this.showRelatedGraph();
       },
@@ -117,7 +166,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "show-graph-for-folder",
-      name: "Context Graph Memory: Show Graph for Folder",
+      name: COMMAND_NAMES.showGraphForFolder,
       callback: async () => {
         await this.showGraphForActiveFolder();
       },
@@ -125,7 +174,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "promote-selection-to-long-term-memory",
-      name: "Context Graph Memory: Promote Selection to Long-term Memory",
+      name: COMMAND_NAMES.promoteSelection,
       editorCallback: (editor, ctx) => {
         void this.promoteSelectionToLongTermMemory(editor.getSelection(), ctx.file);
       },
@@ -133,7 +182,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     this.addCommand({
       id: "export-codex-context-for-current-note",
-      name: "Context Graph Memory: Export Codex Context for Current Note",
+      name: COMMAND_NAMES.exportCodexContext,
       callback: async () => {
         await this.exportCodexContextForCurrentNote();
       },
@@ -165,7 +214,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     try {
       const result = await client.verifyConnectivity();
-      new Notice(result.ok ? result.message : `Neo4j connection failed: ${result.message}`);
+      new Notice(result.ok ? "Neo4j 연결 성공" : `Neo4j 연결 실패: ${result.message}`);
     } finally {
       await client.close();
     }
@@ -177,9 +226,9 @@ export default class ContextGraphMemoryPlugin extends Plugin {
     try {
       const schema = new Neo4jSchemaService(client);
       const result = await schema.initializeSchema();
-      new Notice(`Neo4j schema initialized: ${result.applied.length} statements.`);
+      new Notice(`Neo4j 스키마 초기화 완료: ${result.applied.length}개 구문 적용됨.`);
     } catch (error) {
-      new Notice(`Neo4j schema initialization failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`Neo4j 스키마 초기화 실패: ${sanitizeNeo4jError(error, this.settings)}`);
     } finally {
       await client.close();
     }
@@ -190,7 +239,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
     this.indexQueue = new VaultIndexQueue(
       (items) => this.processQueueItems(items),
       this.settings.indexDebounceMs,
-      (report) => this.notifyIndexingReport("Context Graph Memory auto-index", report, false),
+      (report) => this.notifyIndexingReport(AUTO_INDEX_PREFIX, report, false),
     );
   }
 
@@ -271,22 +320,22 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     if (this.settings.indexOnStartup) {
       this.app.workspace.onLayoutReady(() => {
-        void this.indexVault("Context Graph Memory startup index");
+        void this.indexVault(STARTUP_INDEX_PREFIX);
       });
     }
   }
 
-  private async indexCurrentNote(prefix = "Context Graph Memory: Index Current Note"): Promise<void> {
+  private async indexCurrentNote(prefix = INDEX_CURRENT_PREFIX): Promise<void> {
     const report = await this.getVaultIndexer().indexCurrentNote(true);
     this.notifyIndexingReport(prefix, report);
   }
 
-  private async indexVault(prefix = "Context Graph Memory: Index Vault"): Promise<void> {
+  private async indexVault(prefix = INDEX_VAULT_PREFIX): Promise<void> {
     const report = await this.getVaultIndexer().indexVault(true);
     this.notifyIndexingReport(prefix, report);
   }
 
-  private async flushChangedNotes(prefix = "Context Graph Memory: Reindex Changed Notes"): Promise<void> {
+  private async flushChangedNotes(prefix = REINDEX_CHANGED_PREFIX): Promise<void> {
     const queue = this.getIndexQueue();
     const report = queue.getPendingCount() === 0 ? new IndexingReport() : await queue.flush();
     this.notifyIndexingReport(prefix, report);
@@ -307,7 +356,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
   private async showMetadataExtractionPreview(): Promise<void> {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile || !isMarkdownFile(activeFile)) {
-      new Notice("Context Graph Memory: Open a Markdown note before previewing metadata.");
+      new Notice("컨텍스트 그래프 메모리: 메타데이터 미리보기를 실행하려면 마크다운 노트를 열어주세요.");
       return;
     }
 
@@ -319,17 +368,17 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
       new MetadataPreviewModal(this.app, payload).open();
       new Notice(
-        `Context Graph Memory: Metadata preview ready (${payload.dataForgeCompatibility.relationCandidateCount} relation candidates).`,
+        `메타데이터 미리보기 완료 (${payload.dataForgeCompatibility.relationCandidateCount}개 관계 후보).`,
       );
     } catch (error) {
-      new Notice(`Context Graph Memory metadata preview failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`메타데이터 미리보기 실패: ${sanitizeNeo4jError(error, this.settings)}`);
     }
   }
 
   private async previewSemanticEnrichmentCandidates(): Promise<void> {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile || !isMarkdownFile(activeFile)) {
-      new Notice("Context Graph Memory: Open a Markdown note before previewing semantic enrichment.");
+      new Notice("컨텍스트 그래프 메모리: 시맨틱 보강 후보를 보려면 마크다운 노트를 열어주세요.");
       return;
     }
 
@@ -347,10 +396,10 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
       const report = await service.approveCandidates(approvedCandidates);
       new Notice(
-        `Context Graph Memory: Approved ${report.approved}/${report.attempted} semantic enrichment candidates.`,
+        `시맨틱 보강 후보 승인 완료: ${report.approved}/${report.attempted}개`,
       );
     } catch (error) {
-      new Notice(`Context Graph Memory semantic enrichment failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`시맨틱 보강 처리 실패: ${sanitizeNeo4jError(error, this.settings)}`);
     }
   }
 
@@ -374,6 +423,14 @@ export default class ContextGraphMemoryPlugin extends Plugin {
                 void this.showGraphForFile(file);
               });
           });
+          menu.addItem((item) => {
+            item
+              .setTitle("Obsidian 기본 로컬 그래프 열기")
+              .setIcon("git-fork")
+              .onClick(() => {
+                this.openObsidianLocalGraph("Obsidian 기본 로컬 그래프를 열었습니다.");
+              });
+          });
           return;
         }
 
@@ -386,6 +443,17 @@ export default class ContextGraphMemoryPlugin extends Plugin {
                 void this.showGraphForFolderPath(file.path);
               });
           });
+          menu.addItem((item) => {
+            item
+              .setTitle("Obsidian 기본 그래프 열기")
+              .setIcon("git-fork")
+              .onClick(() => {
+                this.openObsidianLocalGraph(
+                  "Obsidian 기본 그래프를 열었습니다. 폴더 범위는 Obsidian 그래프의 검색/필터에서 조정하세요.",
+                  ["graph:open", "graph:open-local", "graph:open-local-graph"],
+                );
+              });
+          });
         }
       }),
     );
@@ -394,7 +462,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
   private async showRelatedGraph(): Promise<void> {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile || !isMarkdownFile(activeFile)) {
-      new Notice("Context Graph Memory: No active Markdown file.");
+      new Notice("컨텍스트 그래프 메모리: 활성 마크다운 노트가 없습니다.");
       return;
     }
 
@@ -406,7 +474,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
     const folderPath = activeFile?.parent?.path;
 
     if (folderPath === undefined) {
-      new Notice("Context Graph Memory: No active folder.");
+      new Notice("컨텍스트 그래프 메모리: 활성 폴더가 없습니다.");
       return;
     }
 
@@ -415,37 +483,41 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
   private async showGraphForFile(file: TFile): Promise<void> {
     try {
+      const report = await this.getVaultIndexer().indexFile(file, true);
+      this.notifyIndexingReport(GRAPH_FILE_INDEX_PREFIX, report, false);
       const scope = createNoteGraphScope(file.path, this.settings);
       const result = await this.getGraphQueryService().getGraph(scope);
       this.lastGraphResult = result;
       await this.openGraphPanel(result);
-      this.notifyGraphResult("Context Graph Memory: Related graph ready", result);
+      this.notifyGraphResult(RELATED_GRAPH_READY_PREFIX, result);
     } catch (error) {
-      new Notice(`Context Graph Memory graph query failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`그래프 조회 실패: ${sanitizeNeo4jError(error, this.settings)}`);
     }
   }
 
   private async showGraphForFolderPath(path: string): Promise<void> {
     try {
+      const report = await this.getVaultIndexer().indexFolder(path, true);
+      this.notifyIndexingReport(GRAPH_FOLDER_INDEX_PREFIX, report, false);
       const scope = createFolderGraphScope(path, this.settings);
       const result = await this.getGraphQueryService().getGraph(scope);
       this.lastGraphResult = result;
       await this.openGraphPanel(result);
-      this.notifyGraphResult("Context Graph Memory: Folder graph ready", result);
+      this.notifyGraphResult(FOLDER_GRAPH_READY_PREFIX, result);
     } catch (error) {
-      new Notice(`Context Graph Memory folder graph query failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`폴더 그래프 조회 실패: ${sanitizeNeo4jError(error, this.settings)}`);
     }
   }
 
   private async promoteSelectionToLongTermMemory(selection: string, file: TFile | null): Promise<void> {
     if (!file || !isMarkdownFile(file)) {
-      new Notice("Context Graph Memory: Open a Markdown note before promoting memory.");
+      new Notice("컨텍스트 그래프 메모리: 기억으로 승격하려면 마크다운 노트를 열어주세요.");
       return;
     }
 
     const text = normalizeSelectedText(selection);
     if (text.length === 0) {
-      new Notice("Context Graph Memory: Select text before promoting memory.");
+      new Notice("컨텍스트 그래프 메모리: 승격할 텍스트를 선택해주세요.");
       return;
     }
 
@@ -464,18 +536,18 @@ export default class ContextGraphMemoryPlugin extends Plugin {
         source: buildMemorySourceFromFile(file),
       });
     } catch (error) {
-      new Notice(`Context Graph Memory memory promotion failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`메모리 승격 실패: ${sanitizeNeo4jError(error, this.settings)}`);
       return;
     }
 
     try {
       await new MemoryInboxWriter(this.app.vault, this.settings.memoryInboxPath).append(memory);
     } catch (error) {
-      new Notice(`Context Graph Memory saved Neo4j memory, but Memory Inbox append failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`Neo4j에 메모리를 저장했지만 메모리 인박스 저장 실패: ${sanitizeNeo4jError(error, this.settings)}`);
       return;
     }
 
-    new Notice(`Context Graph Memory: ${type} promoted and recorded.`);
+    new Notice(`${formatMemoryTypeLabel(type)} 타입 메모리가 기록되었습니다.`);
   }
 
   private async chooseMemoryType(selection: string): Promise<MemoryType | null> {
@@ -487,7 +559,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
   private async exportCodexContextForCurrentNote(): Promise<void> {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile || !isMarkdownFile(activeFile)) {
-      new Notice("Context Graph Memory: Open a Markdown note before exporting Codex context.");
+      new Notice("컨텍스트 그래프 메모리: Codex 컨텍스트를 내보내려면 마크다운 노트를 열어주세요.");
       return;
     }
 
@@ -517,10 +589,10 @@ export default class ContextGraphMemoryPlugin extends Plugin {
 
     try {
       const outputPath = await new CodexContextWriter(this.app.vault, this.settings.codexContextOutputPath).write(context);
-      const warning = graphError ? " with graph warning" : "";
-      new Notice(`Context Graph Memory: Codex context exported${warning} to ${outputPath}.`);
+      const warning = graphError ? " (그래프 조회 경고 포함)" : "";
+      new Notice(`Codex 컨텍스트를${warning} 내보냈습니다: ${outputPath}.`);
     } catch (error) {
-      new Notice(`Context Graph Memory context export failed: ${sanitizeNeo4jError(error, this.settings)}`);
+      new Notice(`Codex 컨텍스트 내보내기 실패: ${sanitizeNeo4jError(error, this.settings)}`);
     }
   }
 
@@ -536,7 +608,7 @@ export default class ContextGraphMemoryPlugin extends Plugin {
     await leaf.loadIfDeferred();
 
     if (!(leaf.view instanceof GraphView)) {
-      throw new Error("Context Graph Memory graph view failed to open.");
+      throw new Error("컨텍스트 그래프 메모리 그래프 뷰를 열지 못했습니다.");
     }
 
     if (result) {
@@ -579,10 +651,45 @@ export default class ContextGraphMemoryPlugin extends Plugin {
   }
 
   private notifyGraphResult(prefix: string, result: GraphResult): void {
-    new Notice(`${prefix}: ${result.summary.nodeCount} nodes, ${result.summary.edgeCount} edges.`);
+    new Notice(`${prefix}: 노드 ${result.summary.nodeCount}개, 엣지 ${result.summary.edgeCount}개.`);
+  }
+
+  private openObsidianLocalGraph(
+    successMessage: string,
+    preferredCommandIds = ["graph:open-local", "graph:open-local-graph", "graph:open"],
+  ): boolean {
+    const commands = (this.app as AppWithCommands).commands;
+    const commandId = preferredCommandIds.find((id) =>
+      commands?.listCommands?.().some((command) => command.id === id),
+    );
+
+    if (!commandId) {
+      new Notice("Obsidian 기본 로컬 그래프 명령을 찾지 못했습니다. 코어 플러그인에서 그래프 뷰가 활성화되어 있는지 확인하세요.");
+      return false;
+    }
+
+    commands?.executeCommandById?.(commandId);
+    new Notice(successMessage);
+    return true;
   }
 }
 
 function isMarkdownPath(path: string): boolean {
   return path.toLowerCase().endsWith(".md");
+}
+
+function formatMemoryTypeLabel(type: string): string {
+  if (type === "Preference") {
+    return "선호";
+  }
+
+  if (type === "Rule") {
+    return "규칙";
+  }
+
+  if (type === "Decision") {
+    return "결정";
+  }
+
+  return type;
 }

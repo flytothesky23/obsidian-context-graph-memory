@@ -89,13 +89,50 @@ export class VaultIndexer {
     const activeFile = this.app.workspace.getActiveFile();
 
     if (!activeFile || !isMarkdownFile(activeFile)) {
-      report.recordSkipped("(active file)", "No active Markdown file.");
+      report.recordSkipped("(현재 파일)", "활성 마크다운 파일이 없습니다");
       return report;
     }
 
     const runner = this.createRunner();
     try {
       await this.indexFileWithRunner(activeFile, runner, report, force);
+    } finally {
+      await runner.close?.();
+    }
+
+    return report;
+  }
+
+  async indexFile(file: TFile, force = false): Promise<IndexingReport> {
+    const report = new IndexingReport();
+    const runner = this.createRunner();
+
+    try {
+      await this.indexFileWithRunner(file, runner, report, force);
+    } finally {
+      await runner.close?.();
+    }
+
+    return report;
+  }
+
+  async indexFolder(folderPath: string, force = false): Promise<IndexingReport> {
+    const report = new IndexingReport();
+    const runner = this.createRunner();
+    const normalizedFolderPath = normalizeFolderPath(folderPath);
+
+    try {
+      const markdownFiles = this.app.vault
+        .getMarkdownFiles()
+        .filter((file) => isPathInFolder(file.path, normalizedFolderPath));
+
+      for (let index = 0; index < markdownFiles.length; index += 1) {
+        await this.indexFileWithRunner(markdownFiles[index], runner, report, force);
+
+        if ((index + 1) % 25 === 0) {
+          await yieldToEventLoop();
+        }
+      }
     } finally {
       await runner.close?.();
     }
@@ -169,7 +206,7 @@ export class VaultIndexer {
     force = false,
   ): Promise<void> {
     if (!this.shouldReadFile(file)) {
-      report.recordSkipped(file.path, "Excluded by folder settings.");
+      report.recordSkipped(file.path, "폴더 필터에서 제외됨");
       return;
     }
 
@@ -179,12 +216,12 @@ export class VaultIndexer {
       const metadata = this.metadataExtractor.extract(file, cache, content);
 
       if (!this.hasIncludedTag(metadata)) {
-        report.recordSkipped(file.path, "No included tag matched.");
+        report.recordSkipped(file.path, "포함 태그 조건 불충분");
         return;
       }
 
       if (!force && this.indexedHashes.get(file.path) === metadata.note.hash) {
-        report.recordSkipped(file.path, "Content hash unchanged.");
+        report.recordSkipped(file.path, "본문 변경 없음");
         return;
       }
 
@@ -344,6 +381,20 @@ function matchesFolderPrefix(folder: string, prefixes: string[]): boolean {
     const normalizedPrefix = prefix.replace(/\/+$/u, "");
     return normalizedPrefix.length > 0 && (folder === normalizedPrefix || folder.startsWith(`${normalizedPrefix}/`));
   });
+}
+
+function normalizeFolderPath(path: string): string {
+  return path.replace(/\/+$/u, "");
+}
+
+function isPathInFolder(filePath: string, folderPath: string): boolean {
+  const folder = getFolder(filePath);
+
+  if (folderPath.length === 0) {
+    return true;
+  }
+
+  return folder === folderPath || folder.startsWith(`${folderPath}/`);
 }
 
 function hashString(value: string): string {

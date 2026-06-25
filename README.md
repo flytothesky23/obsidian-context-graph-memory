@@ -67,7 +67,7 @@ Use an external Neo4j database instance such as local Neo4j, Neo4j Desktop, Dock
 
 | Setting | Default |
 |---|---|
-| URI | `neo4j://localhost:7687` |
+| URI | `bolt://localhost:7687` |
 | Username | `neo4j` |
 | Database | `neo4j` |
 
@@ -117,7 +117,7 @@ File Explorer shortcuts:
 
 | Setting | Default | Notes |
 |---|---|---|
-| `neo4jUri` | `neo4j://localhost:7687` | Bolt/Neo4j URI. |
+| `neo4jUri` | `bolt://localhost:7687` | Bolt/Neo4j URI. |
 | `neo4jUsername` | `neo4j` | Stored in Obsidian plugin data. |
 | `neo4jPassword` | empty | Stored in Obsidian plugin data; never write it into notes or exports. |
 | `neo4jDatabase` | `neo4j` | Database used for all sessions. |

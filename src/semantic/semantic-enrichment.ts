@@ -64,6 +64,9 @@ export interface SemanticEnrichmentPreview {
   warnings: string[];
 }
 
+const SENSITIVE_PLACEHOLDER = "[마스킹]";
+const SENSITIVE_TOKEN_PLACEHOLDER = "[마스킹-토큰]";
+
 export interface SemanticEnrichmentApprovalReport {
   attempted: number;
   approved: number;
@@ -130,7 +133,7 @@ export class SemanticEnrichmentService {
     const warnings: string[] = [];
 
     if (this.settings.semanticEnrichmentMode !== "manual") {
-      warnings.push("Semantic enrichment mode is off. Enable manual mode before approving candidates.");
+      warnings.push("시맨틱 보강이 비활성 상태입니다. 승인하려면 수동 모드를 켜세요.");
       return {
         mode: this.settings.semanticEnrichmentMode,
         adapterId: this.adapter.id,
@@ -142,7 +145,7 @@ export class SemanticEnrichmentService {
 
     const candidates = this.adapter.buildCandidates(metadata);
     if (candidates.length === 0) {
-      warnings.push("No manual semantic enrichment candidates were found in frontmatter.");
+      warnings.push("frontmatter에서 시맨틱 보강 후보를 찾지 못했습니다.");
     }
 
     return {
@@ -159,7 +162,7 @@ export class SemanticEnrichmentService {
     approvedAt = new Date().toISOString(),
   ): Promise<SemanticEnrichmentApprovalReport> {
     if (this.settings.semanticEnrichmentMode !== "manual") {
-      throw new Error("Semantic enrichment approval requires manual mode.");
+      throw new Error("시맨틱 보강 승인에는 수동 모드가 필요합니다.");
     }
 
     if (candidates.length === 0) {
@@ -288,7 +291,7 @@ function buildCandidateFromEntry(
   );
   const reason = sanitizeSemanticText(
     stringValue(firstDefined(entry.reason, entry.rationale, entry.summary)) ??
-      `Manual semantic enrichment candidate from ${sourceField}.`,
+      `시맨틱 보강 후보(기본): ${sourceField}`,
   );
   const evidence = sanitizeOptionalText(firstDefined(entry.evidence, entry.quote, entry.sourceText));
   const origin = normalizeCandidateOrigin(
@@ -436,14 +439,14 @@ function sanitizeOptionalText(value: unknown): string | undefined {
 
 export function sanitizeSemanticText(value: string): string {
   return value
-    .replace(/(password|token|secret|credential|auth)\s*[:=]\s*[^,\s;]+/giu, "$1=[redacted]")
-    .replace(/\b(ghp|github_pat|sk)-[A-Za-z0-9_\-]{12,}\b/gu, "[redacted-token]")
+    .replace(/(password|token|secret|credential|auth)\s*[:=]\s*[^,\s;]+/giu, `$1=${SENSITIVE_PLACEHOLDER}`)
+    .replace(/\b(ghp|github_pat|sk)-[A-Za-z0-9_\-]{12,}\b/gu, SENSITIVE_TOKEN_PLACEHOLDER)
     .trim();
 }
 
 function assertSemanticRelationType(value: string): asserts value is SemanticRelationType {
   if (!SEMANTIC_RELATION_TYPES.includes(value as SemanticRelationType)) {
-    throw new Error(`Unsupported semantic relation type: ${value}`);
+    throw new Error(`지원하지 않는 시맨틱 관계 유형입니다: ${value}`);
   }
 }
 

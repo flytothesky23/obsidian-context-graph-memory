@@ -15,21 +15,21 @@ describe("CodexContextBuilder", () => {
       maxCurrentNoteChars: 1000,
     });
 
-    expect(output).toContain("# Codex Implementation Context");
+    expect(output).toContain("# Codex 구현 컨텍스트");
     expect(headings(output)).toEqual([
-      "# Codex Implementation Context",
-      "## Current Note",
-      "## Related Notes",
-      "## Graph Memory",
-      "### Preference",
-      "### Decision",
-      "## Task",
-      "## Verification",
+      "# Codex 구현 컨텍스트",
+      "## 현재 노트",
+      "## 연관 노트",
+      "## 그래프 메모리",
+      "### 선호",
+      "### 결정",
+      "## 작업",
+      "## 검증",
     ]);
     expect(output).toContain("[[Projects/Related|Related]]");
-    expect(output).toContain("- [Preference] Prefer explicit task scopes.");
-    expect(output).toContain("- [Decision] Use Cytoscape for graph rendering.");
-    expect(output).toContain("- Relationship types: LINKS_TO=1, RECORDED_IN=1");
+    expect(output).toContain("- [선호] Prefer explicit task scopes.");
+    expect(output).toContain("- [결정] Use Cytoscape for graph rendering.");
+    expect(output).toContain("- 관계 유형: 기록=1, 링크=1");
   });
 
   it("redacts credential-like content from note body and graph memory", () => {
@@ -49,10 +49,10 @@ describe("CodexContextBuilder", () => {
     expect(output).not.toContain("eyJhbGciOiJIUzI1NiIs");
     expect(output).not.toContain("ghp_1234567890abcdef");
     expect(output).not.toContain("sk-1234567890");
-    expect(output).toContain("password=[masked]");
-    expect(output).toContain('"auth": "[masked]"');
-    expect(output).toContain("Bearer [masked]");
-    expect(output).toContain("[masked-token]");
+    expect(output).toContain("password=[마스킹]");
+    expect(output).toContain('"auth": "[마스킹]"');
+    expect(output).toContain("Bearer [마스킹]");
+    expect(output).toContain("[마스킹-토큰]");
   });
 
   it("records graph warnings while keeping the export file usable", () => {
@@ -66,16 +66,16 @@ describe("CodexContextBuilder", () => {
       generatedAt: "2026-06-24T00:00:00.000Z",
     });
 
-    expect(output).toContain("## Related Notes");
-    expect(output).toContain("- Related graph was unavailable during export.");
-    expect(output).toContain("Graph warning: password=[masked] failed");
-    expect(output).toContain("Do not execute Codex CLI from this plugin command");
+    expect(output).toContain("## 연관 노트");
+    expect(output).toContain("- 연관 그래프는 내보내기 시 조회할 수 없었습니다.");
+    expect(output).toContain("그래프 경고: password=[마스킹] failed");
+    expect(output).toContain("이 플러그인 명령은 Codex CLI를 실행하지 않으며 마크다운 컨텍스트만 작성합니다.");
   });
 
   it("sanitizes direct secret values supplied by plugin settings", () => {
     expect(sanitizeContextText("Neo4j failed with super-secret-password", {
       redactValues: ["super-secret-password"],
-    })).toBe("Neo4j failed with [masked]");
+    })).toBe("Neo4j failed with [마스킹]");
   });
 });
 

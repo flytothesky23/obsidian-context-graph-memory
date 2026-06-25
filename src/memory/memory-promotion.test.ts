@@ -44,7 +44,7 @@ describe("memory promotion", () => {
         text: "   ",
         source: createSource(),
       }),
-    ).rejects.toThrow("Cannot promote empty selection.");
+    ).rejects.toThrow("빈 텍스트는 승격할 수 없습니다.");
     expect(called).toBe(false);
   });
 

@@ -17,7 +17,7 @@ describe("IndexingReport", () => {
       failed: 1,
       archived: 1,
     });
-    expect(report.toNoticeMessage("Done")).toBe("Done: 1 indexed, 1 skipped, 1 archived, 1 failed.");
+    expect(report.toNoticeMessage("완료")).toBe("완료: 인덱싱 1개, 건너뜀 1개, 아카이브 1개, 실패 1개.");
   });
 
   it("merges report snapshots", () => {

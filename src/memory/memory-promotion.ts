@@ -59,7 +59,7 @@ export class MemoryPromotionService {
 export function buildPromotedMemory(input: MemoryPromotionInput): PromotedMemory {
   const text = normalizeSelectedText(input.text);
   if (text.length === 0) {
-    throw new Error("Cannot promote empty selection.");
+    throw new Error("빈 텍스트는 승격할 수 없습니다.");
   }
 
   const createdAt = input.createdAt ?? new Date().toISOString();
@@ -143,7 +143,7 @@ function buildTypeProperties(type: MemoryType, createdAt: string): Record<string
 
 function memoryTypeToLabel(type: MemoryType): MemoryType {
   if (!MEMORY_TYPES.includes(type)) {
-    throw new Error(`Unsupported memory type: ${type}`);
+    throw new Error(`지원되지 않는 메모리 타입: ${type}`);
   }
 
   return type;

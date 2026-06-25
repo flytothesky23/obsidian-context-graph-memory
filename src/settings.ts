@@ -20,6 +20,68 @@ type ListSettingKey = {
   [K in keyof ContextGraphMemorySettings]: ContextGraphMemorySettings[K] extends string[] ? K : never;
 }[keyof ContextGraphMemorySettings];
 
+const TEXT = {
+  heading: "컨텍스트 그래프 메모리",
+  description:
+    "설정은 Obsidian 플러그인 데이터에만 저장됩니다. Neo4j 인증 정보, 토큰, 인증 파일, 실행 로그를 노트나 내보내기 파일에 넣지 마세요.",
+  neo4j: "Neo4j",
+  uri: "연결 URI",
+  uriDesc: "Neo4j 연결 URI입니다.",
+  username: "사용자명",
+  usernameDesc: "Neo4j 사용자명입니다. T03에서 연결 테스트를 수행합니다.",
+  password: "비밀번호",
+  passwordDesc: "Obsidian 플러그인 데이터에만 저장됩니다. 노트나 내보내기 파일에 기재하지 마세요.",
+  database: "데이터베이스",
+  databaseDesc: "Neo4j 데이터베이스 이름입니다.",
+
+  indexing: "인덱싱",
+  indexOnStartup: "시작 시 인덱싱",
+  indexOnStartupDesc: "플러그인 로드 시 인덱싱을 실행합니다.",
+  autoIndexOnModify: "수정 시 자동 인덱싱",
+  autoIndexOnModifyDesc: "수정된 마크다운 노트를 인덱싱 큐에 등록합니다.",
+  includeFolders: "포함할 폴더",
+  includeFoldersDesc: "허용할 폴더 목록입니다. 한 줄에 경로 1개를 입력하세요. 비우면 예외 폴더를 제외한 전체 폴더를 허용합니다.",
+  excludeFolders: "제외할 폴더",
+  excludeFoldersDesc: "한 줄에 경로 1개를 입력하세요. 해당 폴더는 인덱싱에서 제외됩니다.",
+  includeTags: "포함할 태그",
+  includeTagsDesc: "허용할 태그 목록입니다. 한 줄에 태그 1개를 입력하세요. 비우면 모든 태그를 허용합니다.",
+  indexDebounce: "인덱싱 디바운스",
+  indexDebounceDesc: "수정된 노트를 처리하기 전 대기 시간(밀리초)입니다.",
+  metadataPreviewMaxChars: "메타데이터 미리보기 최대 글자 수",
+  metadataPreviewMaxCharsDesc: "메타데이터 미리보기에서 사용할 최대 텍스트 길이입니다.",
+
+  graph: "그래프",
+  memoryInboxPath: "메모리 인박스 경로",
+  memoryInboxPathDesc: "기억 승격 항목을 기록할 마크다운 파일 경로입니다.",
+  codexContextOutputPath: "Codex 컨텍스트 출력 경로",
+  codexContextOutputPathDesc: "컨텍스트 내보내기에 사용할 마크다운 파일 경로입니다.",
+  maxGraphDepth: "최대 그래프 깊이",
+  maxGraphDepthDesc: "최대 그래프 탐색 깊이입니다.",
+  maxGraphNodes: "최대 그래프 노드 수",
+  maxGraphNodesDesc: "한 번에 렌더링할 최대 노드 수입니다.",
+  graphRenderer: "그래프 렌더러",
+  graphRendererDesc: "MVP 렌더러는 Cytoscape.js로 고정됩니다.",
+  graphLayout: "그래프 레이아웃",
+  graphLayoutDesc: "그래프 뷰 기본 Cytoscape 레이아웃입니다.",
+  graphFitOnOpen: "열 때 화면 맞춤",
+  graphFitOnOpenDesc: "열기 시 그래프를 뷰포트에 맞춥니다.",
+  folderGraphExternalBridges: "폴더 그래프 외부 브릿지 표시",
+  folderGraphExternalBridgesDesc: "폴더 그래프에서 1단계 외부 브릿지 관계를 표시합니다.",
+  folderGraphRecursive: "폴더 그래프 재귀 탐색",
+  folderGraphRecursiveDesc: "폴더 그래프에서 하위 폴더 노트를 포함합니다.",
+
+  dataForgeCompatibility: "Data Forge 호환",
+  dataForgeCompatibilityDesc: "Data Forge 런타임을 호출하지 않고 프론트매터 필드만 읽습니다.",
+  compatibilityValue: "frontmatter",
+  compatibilityValueLabel: "프론트매터",
+  off: "비활성",
+
+  semanticEnrichment: "시맨틱 보강",
+  semanticEnrichmentDesc: "시맨틱 보강은 비활성 또는 수동 모드만 지원합니다. 자동 LLM/런타임 호출은 범위 밖입니다.",
+  offValue: "비활성",
+  manualValue: "수동",
+};
+
 export class ContextGraphMemorySettingTab extends PluginSettingTab {
   constructor(app: App, private readonly plugin: ContextGraphMemoryPlugin) {
     super(app, plugin);
@@ -29,10 +91,9 @@ export class ContextGraphMemorySettingTab extends PluginSettingTab {
     const { containerEl } = this;
 
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Context Graph Memory" });
+    containerEl.createEl("h2", { text: TEXT.heading });
     containerEl.createEl("p", {
-      text:
-        "Settings are stored in Obsidian plugin data. Do not put Neo4j credentials, tokens, auth files, or runtime logs in notes or exported context files.",
+      text: TEXT.description,
     });
 
     this.addNeo4jSettings();
@@ -42,87 +103,87 @@ export class ContextGraphMemorySettingTab extends PluginSettingTab {
   }
 
   private addNeo4jSettings(): void {
-    this.addSection("Neo4j");
-    this.addStringSetting("neo4jUri", "URI", "Neo4j connection URI.", DEFAULT_SETTINGS.neo4jUri);
+    this.addSection(TEXT.neo4j);
+    this.addStringSetting("neo4jUri", TEXT.uri, TEXT.uriDesc, DEFAULT_SETTINGS.neo4jUri);
     this.addStringSetting(
       "neo4jUsername",
-      "Username",
-      "Neo4j username. Connection tests are added in T03.",
+      TEXT.username,
+      TEXT.usernameDesc,
       DEFAULT_SETTINGS.neo4jUsername,
     );
     this.addStringSetting(
       "neo4jPassword",
-      "Password",
-      "Stored in Obsidian plugin data. Do not write this value into notes or exports.",
+      TEXT.password,
+      TEXT.passwordDesc,
       "",
       "password",
     );
     this.addStringSetting(
       "neo4jDatabase",
-      "Database",
-      "Neo4j database name.",
+      TEXT.database,
+      TEXT.databaseDesc,
       DEFAULT_SETTINGS.neo4jDatabase,
     );
   }
 
   private addIndexingSettings(): void {
-    this.addSection("Indexing");
-    this.addToggleSetting("indexOnStartup", "Index on startup", "Run indexing when the plugin loads.");
+    this.addSection(TEXT.indexing);
+    this.addToggleSetting("indexOnStartup", TEXT.indexOnStartup, TEXT.indexOnStartupDesc);
     this.addToggleSetting(
       "autoIndexOnModify",
-      "Auto-index on modify",
-      "Queue changed Markdown notes for indexing after edits.",
+      TEXT.autoIndexOnModify,
+      TEXT.autoIndexOnModifyDesc,
     );
     this.addListSetting(
       "includeFolders",
-      "Include folders",
-      "Optional allow-list. One folder path per line. Empty means all folders except exclusions.",
+      TEXT.includeFolders,
+      TEXT.includeFoldersDesc,
     );
     this.addListSetting(
       "excludeFolders",
-      "Exclude folders",
-      "One folder path per line. These folders are skipped by indexing.",
+      TEXT.excludeFolders,
+      TEXT.excludeFoldersDesc,
     );
     this.addListSetting(
       "includeTags",
-      "Include tags",
-      "Optional tag allow-list. One tag per line. Empty means all tags are accepted.",
+      TEXT.includeTags,
+      TEXT.includeTagsDesc,
     );
     this.addNumberSetting(
       "indexDebounceMs",
-      "Index debounce",
-      "Milliseconds to wait before processing modified notes.",
+      TEXT.indexDebounce,
+      TEXT.indexDebounceDesc,
       100,
       60000,
     );
     this.addNumberSetting(
       "metadataPreviewMaxChars",
-      "Metadata preview max chars",
-      "Maximum note text length used for metadata preview.",
+      TEXT.metadataPreviewMaxChars,
+      TEXT.metadataPreviewMaxCharsDesc,
       500,
       100000,
     );
   }
 
   private addGraphSettings(): void {
-    this.addSection("Graph");
+    this.addSection(TEXT.graph);
     this.addStringSetting(
       "memoryInboxPath",
-      "Memory inbox path",
-      "Markdown file used by later memory-promotion tasks.",
+      TEXT.memoryInboxPath,
+      TEXT.memoryInboxPathDesc,
       DEFAULT_SETTINGS.memoryInboxPath,
     );
     this.addStringSetting(
       "codexContextOutputPath",
-      "Codex context output path",
-      "Markdown file path used by later context export tasks.",
+      TEXT.codexContextOutputPath,
+      TEXT.codexContextOutputPathDesc,
       DEFAULT_SETTINGS.codexContextOutputPath,
     );
-    this.addNumberSetting("maxGraphDepth", "Max graph depth", "Maximum graph traversal depth.", 1, 5);
-    this.addNumberSetting("maxGraphNodes", "Max graph nodes", "Maximum nodes rendered in one graph.", 10, 1000);
+    this.addNumberSetting("maxGraphDepth", TEXT.maxGraphDepth, TEXT.maxGraphDepthDesc, 1, 5);
+    this.addNumberSetting("maxGraphNodes", TEXT.maxGraphNodes, TEXT.maxGraphNodesDesc, 10, 1000);
     new Setting(this.containerEl)
-      .setName("Graph renderer")
-      .setDesc("MVP renderer is fixed to Cytoscape.js.")
+      .setName(TEXT.graphRenderer)
+      .setDesc(TEXT.graphRendererDesc)
       .addDropdown((dropdown) =>
         dropdown
           .addOption("cytoscape", "cytoscape")
@@ -132,8 +193,8 @@ export class ContextGraphMemorySettingTab extends PluginSettingTab {
           }),
       );
     new Setting(this.containerEl)
-      .setName("Graph layout")
-      .setDesc("Default Cytoscape layout for graph views.")
+      .setName(TEXT.graphLayout)
+      .setDesc(TEXT.graphLayoutDesc)
       .addDropdown((dropdown) => {
         for (const layout of GRAPH_LAYOUT_OPTIONS) {
           dropdown.addOption(layout, layout);
@@ -145,43 +206,45 @@ export class ContextGraphMemorySettingTab extends PluginSettingTab {
           }
         });
       });
-    this.addToggleSetting("graphFitOnOpen", "Fit graph on open", "Fit the graph to the viewport when opened.");
+    this.addToggleSetting("graphFitOnOpen", TEXT.graphFitOnOpen, TEXT.graphFitOnOpenDesc);
     this.addToggleSetting(
       "folderGraphIncludeExternalBridges",
-      "Folder graph external bridges",
-      "Include one-hop external bridge relationships in folder graphs.",
+      TEXT.folderGraphExternalBridges,
+      TEXT.folderGraphExternalBridgesDesc,
     );
     this.addToggleSetting(
       "folderGraphRecursive",
-      "Folder graph recursive",
-      "Include nested Markdown notes when opening a folder graph.",
+      TEXT.folderGraphRecursive,
+      TEXT.folderGraphRecursiveDesc,
     );
   }
 
   private addCompatibilitySettings(): void {
-    this.addSection("Data Forge compatibility");
+    this.addSection(TEXT.dataForgeCompatibility);
     new Setting(this.containerEl)
-      .setName("Data Forge compatibility")
-      .setDesc("Read Data Forge frontmatter fields without calling the Data Forge runtime.")
+      .setName(TEXT.dataForgeCompatibility)
+      .setDesc(TEXT.dataForgeCompatibilityDesc)
       .addDropdown((dropdown) =>
         dropdown
-          .addOption("off", "off")
-          .addOption("frontmatter", "frontmatter")
+      .addOption("off", TEXT.off)
+          .addOption(TEXT.compatibilityValue, TEXT.compatibilityValueLabel)
           .setValue(this.plugin.settings.dataForgeCompatibilityMode)
           .onChange(async (value) => {
+            const mode = (value === TEXT.compatibilityValue ? "frontmatter" : "off") as
+              ContextGraphMemorySettings["dataForgeCompatibilityMode"];
             await this.updateSetting(
               "dataForgeCompatibilityMode",
-              value === "frontmatter" ? "frontmatter" : "off",
+              mode,
             );
           }),
       );
     new Setting(this.containerEl)
-      .setName("Semantic enrichment")
-      .setDesc("Keep semantic enrichment off or manual-only. Automatic LLM/runtime calls are out of scope.")
+      .setName(TEXT.semanticEnrichment)
+      .setDesc(TEXT.semanticEnrichmentDesc)
       .addDropdown((dropdown) =>
         dropdown
-          .addOption("off", "off")
-          .addOption("manual", "manual")
+          .addOption("off", TEXT.offValue)
+          .addOption("manual", TEXT.manualValue)
           .setValue(this.plugin.settings.semanticEnrichmentMode)
           .onChange(async (value) => {
             await this.updateSetting("semanticEnrichmentMode", value === "manual" ? "manual" : "off");

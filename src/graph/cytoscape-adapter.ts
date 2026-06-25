@@ -1,5 +1,6 @@
 import type cytoscape from "cytoscape";
 import type { GraphEdge, GraphNode, GraphResult } from "./graph-scope";
+import { formatRelationType, shouldShowRelationLabel } from "./labels";
 
 export interface CytoscapeNodeData {
   id: string;
@@ -19,6 +20,7 @@ export interface CytoscapeEdgeData {
   source: string;
   target: string;
   label: string;
+  displayLabel: string;
   type: string;
   properties: Record<string, unknown>;
 }
@@ -69,7 +71,8 @@ export function graphEdgeToCytoscapeElement(edge: GraphEdge): CytoscapeGraphElem
       originalId: edge.id,
       source: toCytoscapeNodeId(edge.source),
       target: toCytoscapeNodeId(edge.target),
-      label: edge.type,
+      label: formatRelationType(edge.type),
+      displayLabel: shouldShowRelationLabel(edge.type) ? formatRelationType(edge.type) : "",
       type: edge.type,
       properties: edge.properties,
     } satisfies CytoscapeEdgeData,

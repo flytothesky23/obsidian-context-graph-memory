@@ -21,7 +21,7 @@ export class MemoryInboxWriter {
     }
 
     if (!isTFile(existing)) {
-      throw new Error(`Memory Inbox path is not a file: ${normalizedPath}`);
+      throw new Error(`메모리 인박스 경로가 파일이 아닙니다: ${normalizedPath}`);
     }
 
     const content = await this.vault.read(existing);
@@ -45,14 +45,14 @@ export class MemoryInboxWriter {
       }
 
       if (!isTFolder(existing)) {
-        throw new Error(`Memory Inbox parent path is not a folder: ${currentPath}`);
+        throw new Error(`메모리 인박스 상위 경로가 폴더가 아닙니다: ${currentPath}`);
       }
     }
   }
 }
 
 export function appendEntryToInboxContent(content: string, date: string, entry: string): string {
-  const lines = content.replace(/\r\n?/gu, "\n").split("\n");
+  const lines = normalizeLegacyKorean(content).replace(/\r\n?/gu, "\n").split("\n");
   const heading = `## ${date}`;
   const headingIndex = lines.findIndex((line) => line.trim() === heading);
 
@@ -60,7 +60,7 @@ export function appendEntryToInboxContent(content: string, date: string, entry: 
     const baseLines = trimTrailingEmptyLines(lines);
     const prefix = baseLines.length > 0 && baseLines.some((line) => line.trim().length > 0)
       ? [...baseLines, "", heading, ""]
-      : ["# Memory Inbox", "", heading, ""];
+      : ["# 메모리 인박스", "", heading, ""];
     return [...prefix, ...entry.split("\n"), ""].join("\n");
   }
 
@@ -80,28 +80,37 @@ export function appendEntryToInboxContent(content: string, date: string, entry: 
   return `${trimTrailingWhitespace(combined.join("\n"))}\n`;
 }
 
+function normalizeLegacyKorean(content: string): string {
+  return content
+    .replace(/^#\s*Memory\s+Inbox\s*$/gmu, "# 메모리 인박스")
+    .replace(/^(\s*)Source:\s+(.+)$/gmu, "$1출처: $2")
+    .replace(/^(\s*)- \[Preference\]/gmu, "$1- [선호]")
+    .replace(/^(\s*)- \[Rule\]/gmu, "$1- [규칙]")
+    .replace(/^(\s*)- \[Decision\]/gmu, "$1- [결정]");
+}
+
 export function formatMemoryInboxEntry(memory: PromotedMemory): string {
   const text = sanitizeMemoryInboxText(memory.text).replace(/\s+/gu, " ").trim();
-  return `- [${memory.type}] ${text}\n  Source: ${toObsidianSourceLink(memory.source.path, memory.source.title)}`;
+  return `- [${formatMemoryTypeLabel(memory.type)}] ${text}\n  출처: ${toObsidianSourceLink(memory.source.path, memory.source.title)}`;
 }
 
 export function sanitizeMemoryInboxText(text: string): string {
   return text
     .replace(
       /\b(password|passwd|token|secret|credential|auth|login|runtime[_ -]?log)\b\s*[:=]\s*("[^"]*"|'[^']*'|[^\s,;]+)/giu,
-      (_match, key: string) => `${key}=[masked]`,
+      (_match, key: string) => `${key}=[마스킹]`,
     )
     .replace(
       /(["'])(password|passwd|token|secret|credential|auth|login|runtime[_ -]?log)\1\s*:\s*(["'])(.*?)\3/giu,
-      (_match, quote: string, key: string) => `${quote}${key}${quote}: "[masked]"`,
+      (_match, quote: string, key: string) => `${quote}${key}${quote}: "[마스킹]"`,
     )
     .replace(
       /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}/giu,
-      (_match, scheme: string) => `${scheme} [masked]`,
+      (_match, scheme: string) => `${scheme} [마스킹]`,
     )
     .replace(
       /\b(sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,})\b/gu,
-      "[masked-token]",
+      "[마스킹-토큰]",
     );
 }
 
@@ -154,4 +163,15 @@ function trimLeadingEmptyLines(lines: string[]): string[] {
 
 function trimTrailingWhitespace(value: string): string {
   return value.replace(/\s+$/u, "");
+}
+
+function formatMemoryTypeLabel(type: string): string {
+  if (type === "Preference") {
+    return "선호";
+  }
+  if (type === "Rule") {
+    return "규칙";
+  }
+
+  return "결정";
 }

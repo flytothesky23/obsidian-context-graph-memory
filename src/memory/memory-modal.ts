@@ -16,17 +16,17 @@ export class MemoryTypeModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: "Promote selection" });
+    contentEl.createEl("h2", { text: "선택 텍스트 승격" });
     contentEl.createEl("p", {
       text: previewSelection(this.selectedText),
     });
 
     for (const type of MEMORY_TYPES) {
       new Setting(contentEl)
-        .setName(type)
+        .setName(getTypeLabel(type))
         .setDesc(getTypeDescription(type))
         .addButton((button) => {
-          button.setButtonText(`Save as ${type}`).onClick(() => {
+          button.setButtonText(`선택 항목으로 저장 (${getTypeLabel(type)})`).onClick(() => {
             this.completed = true;
             this.close();
             this.onChoose(type);
@@ -54,12 +54,24 @@ function previewSelection(text: string): string {
 
 function getTypeDescription(type: MemoryType): string {
   if (type === "Preference") {
-    return "A stable user or project preference.";
+    return "사용자나 프로젝트의 지속적인 선호사항입니다.";
   }
 
   if (type === "Rule") {
-    return "An operating rule that should guide future work.";
+    return "향후 작업에서 참고해야 할 운영 규칙입니다.";
   }
 
-  return "A project decision that should remain traceable to this note.";
+  return "이 노트에 대한 근거를 남겨야 할 프로젝트 결정사항입니다.";
+}
+
+function getTypeLabel(type: MemoryType): string {
+  if (type === "Preference") {
+    return "선호사항";
+  }
+
+  if (type === "Rule") {
+    return "규칙";
+  }
+
+  return "결정";
 }

@@ -34,7 +34,7 @@ describe("CodexContextWriter", () => {
     vault.folders.add("00_System/Codex Context.md");
     const writer = new CodexContextWriter(vault as unknown as Vault, "00_System/Codex Context.md");
 
-    await expect(writer.write("content")).rejects.toThrow("Codex context output path is not a file");
+    await expect(writer.write("content")).rejects.toThrow("Codex 컨텍스트 출력 경로가 파일이 아닙니다");
   });
 });
 
